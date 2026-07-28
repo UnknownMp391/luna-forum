@@ -4,6 +4,5 @@ config.json
 *.log
 .DS_Store
 Thumbs.db
-yarn.lock
 package-lock.json
 /generated/prisma
