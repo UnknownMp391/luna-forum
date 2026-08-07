@@ -2,6 +2,7 @@ import { privManager } from './privmgr.js'
 import { getDB } from './db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
+import type { FastifyInstance } from 'fastify'
 
 const PRIV_REGISTER_ACCOUNT = 0
 const PRIV_LOGIN = 1
