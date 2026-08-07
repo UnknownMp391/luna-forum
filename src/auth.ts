@@ -33,7 +33,7 @@ export function verifyToken(token: string): { uid: number } | null {
   }
 }
 
-export function getUserIdFromRequest(request): number {
+export function getUserIdFromRequest(request: any): number {
   const authHeader = request.headers.authorization
   if (!authHeader) return 0
 
@@ -54,7 +54,7 @@ export async function initGuestPriv() {
 }
 
 export function setupAuthRoutes(server: FastifyInstance): void {
-  server.post('/api/v1/register', async (request, reply) => {
+  server.post('/api/v1/register', async (request: any, reply: any) => {
     const { username, password, email } = request.body
     const db = getDB()
 
@@ -97,7 +97,7 @@ export function setupAuthRoutes(server: FastifyInstance): void {
     return reply.code(201).send({ success: true, uid: newUid, username, token })
   })
 
-  server.post('/api/v1/login', async (request, reply) => {
+  server.post('/api/v1/login', async (request: any, reply: any) => {
     const { username, password } = request.body
     const db = getDB()
 
@@ -117,7 +117,7 @@ export function setupAuthRoutes(server: FastifyInstance): void {
     }
 
     const token = signToken(user.uid)
-    return { success: true, token, user: { uid: user.uid, username: user.username } }
+    return reply.code(200).send({ success: true, token, user: { uid: user.uid, username: user.username } })
   })
 }
 
