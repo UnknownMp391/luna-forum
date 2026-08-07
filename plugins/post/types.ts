@@ -9,7 +9,7 @@ export const PostSchema = Type.Object({
   visibility: Type.Number(),
   createdAt: DateTimeSchema,
   updatedAt: DateTimeSchema,
-  tagId: Type.Optional(Type.Number()),
+  tagId: Type.Optional(Type.String()),
 })
 
 export type Post = Static<typeof PostSchema>

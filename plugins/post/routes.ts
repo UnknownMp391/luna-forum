@@ -43,14 +43,14 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
   const listQuerySchema = Type.Object({
     page: Type.Optional(Type.Number({ minimum: 1, default: 1 })),
     limit: Type.Optional(Type.Number({ minimum: 1, default: 20 })),
-    tagId: Type.Optional(Type.Number())
+    tagId: Type.Optional(Type.String())
   })
   const listReplySchema = Type.Object({
-    posts: Type.Array(PostSchema)
+    posts: Type.Array(Type.Any())
   })
   server.get<{
     Querystring: Static<typeof listQuerySchema>,
-    Reply: Post
+    Reply: StaticDecode<typeof listReplySchema> | ErrorBaseType
   }>('/api/v1/post/list', {
       schema: {
         querystring: listQuerySchema,
@@ -96,7 +96,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
       });
       
       let result = {
-        posts: [], // TODO: Masked
+        posts: posts, // TODO: Masked
         total,
       };
 
@@ -105,11 +105,11 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
           result = { ...result, ...e };
       }
 
-      //return result;
+      return result;
     }
   );
 
-  const getParamSchema = Type.Object({id: Type.Number()})
+  const getParamSchema = Type.Object({id: Type.String()})
   const getReplySchema = Type.Object({
     post: PostSchema
   })
@@ -137,7 +137,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     const post = await db
       .collection('posts')
       .findOne({
-        _id: new ObjectId(id.toString())
+        _id: new ObjectId(id)
       }) as Post | null;
 
     if (!post) {
@@ -167,7 +167,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
   const createBodySchema = Type.Object({
     title: Type.String(),
     content: Type.String(),
-    tagId: Type.Optional(Type.Number()),
+    tagId: Type.Optional(Type.String()),
     visibility: Type.Optional(Type.Number())
   })
   server.post<{
@@ -212,7 +212,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     if (tagId) {
       const tag = await db
         .collection('tags')
-        .findOne({ _id: new ObjectId(tagId.toString()) });
+        .findOne({ _id: new ObjectId(tagId) });
 
       if (tag) post.tagId = tagId;
     }
@@ -241,7 +241,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
   });
 
   const replaceParamsSchema = Type.Object({
-    id: Type.Number()
+    id: Type.String()
   })
   server.put<{
     Body: Post,
@@ -262,7 +262,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     
     const oldPost = await db
       .collection('posts')
-      .findOne({ _id: new ObjectId(id.toString()) });
+      .findOne({ _id: new ObjectId(id) });
     
       if (!oldPost) {
       return reply.code(404).send({ success: false, error: 'Post not found' });
@@ -296,7 +296,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     }
     
     const result = await db.collection('posts').updateOne(
-      { _id: new ObjectId(id.toString()) },
+      { _id: new ObjectId(id) },
       { $set: update }
     );
     
@@ -310,7 +310,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
   });
 
   const getEditsParamsSchema = Type.Object({
-    id: Type.Number()
+    id: Type.String()
   })
   server.get<{
     Params: Static<typeof getEditsParamsSchema>
@@ -327,7 +327,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     
     const post = await db
       .collection('posts')
-      .findOne({ _id: new ObjectId(id.toString()) }) as Post | null;
+      .findOne({ _id: new ObjectId(id) }) as Post | null;
     
     if (!post) {
       return reply.code(404).send({ success: false, error: 'Post not found' });
@@ -346,16 +346,16 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
   });
 
   const deleteParamsSchema = Type.Object({
-    id: Type.Number()
+    id: Type.String()
   })
   server.delete<{
     Params: Static<typeof deleteParamsSchema>,
-    Reply: undefined
+    Reply: void
   }>('/api/v1/post/:id', {
     schema: {
       params: deleteParamsSchema,
       response: {
-        204: Type.Object({})
+        204: Type.Null({})
       }
     }
   }, async (request, reply) => {
@@ -367,7 +367,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     
     const post = await db
       .collection('posts')
-      .findOne({ _id: new ObjectId(id.toString()) });
+      .findOne({ _id: new ObjectId(id) });
     
       if (!post) {
       return reply.code(404).send({ success: false, error: 'Post not found' });
@@ -379,7 +379,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     
     await kernel.callHook('post:beforeDelete', post);
     
-    const result = await db.collection('posts').deleteOne({ _id: new ObjectId(id.toString()) });
+    const result = await db.collection('posts').deleteOne({ _id: new ObjectId(id) });
     
     if (result.deletedCount === 0) {
       return reply.code(404).send({ success: false, error: 'Post not found' });
@@ -387,6 +387,6 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
     
     await kernel.callHook('post:afterDelete', post);
     
-    return reply.code(204)
+    return reply.code(204).send();
   });
 }
