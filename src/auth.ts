@@ -106,14 +106,14 @@ export function setupAuthRoutes(server: FastifyInstance): void {
       return reply.code(401).send({ success: false, error: 'Invalid credentials' })
     }
 
+    const canLogin = await privManager.hasPriv(user.uid, PRIV_LOGIN)
+        if (!canLogin) {
+          return reply.code(403).send({ success: false, error: 'User cannot login' })
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.password)
     if (!passwordMatch) {
       return reply.code(401).send({ success: false, error: 'Invalid credentials' })
-    }
-
-    const canLogin = await privManager.hasPriv(user.uid, PRIV_LOGIN)
-    if (!canLogin) {
-      return reply.code(403).send({ success: false, error: 'User cannot login' })
     }
 
     const token = signToken(user.uid)
