@@ -1,13 +1,14 @@
 import { ObjectId } from 'mongodb'
 import { KernelAPI } from '../../src/types'
 import { FastifyInstance } from 'fastify'
+import { IdParams } from './types'
 
 const POST_PINNED_MAGIC = 100
 const PRIV_POST_PIN = POST_PINNED_MAGIC + 0
 const PRIV_POST_UNPIN = POST_PINNED_MAGIC + 1
 
 export function setupPostPinnedRoutes(server: FastifyInstance, kernel: KernelAPI): void {
-  server.put('/api/v1/post/:id/pin', async (request, reply) => {
+  server.put<{ Params: IdParams }>('/api/v1/post/:id/pin', async (request, reply) => {
     const { id } = request.params
     const userId = kernel.getUserIdFromRequest(request)
     const db = kernel.getDB()
@@ -24,7 +25,7 @@ export function setupPostPinnedRoutes(server: FastifyInstance, kernel: KernelAPI
     }
     return { success: true, pinned: true }
   })
-  server.put('/api/v1/post/:id/unpin', async (request, reply) => {
+  server.put<{ Params: IdParams }>('/api/v1/post/:id/unpin', async (request, reply) => {
     const { id } = request.params
     const userId = kernel.getUserIdFromRequest(request)
     const db = kernel.getDB()

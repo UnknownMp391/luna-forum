@@ -1,5 +1,7 @@
 import type { Plugin } from '../../src/types.js'
 import { setupTagRoutes } from './routes.js'
+import { ObjectId } from 'mongodb'
+import { Post } from './types.js'
 
 const TAG_MAGIC = 500
 const PRIV_TAG_CREATE = TAG_MAGIC + 0
@@ -18,21 +20,23 @@ const tagPlugin: Plugin = {
     ctx.registerPriv('PRIV_TAG_DELETE', String(PRIV_TAG_DELETE))
     ctx.registerPriv('PRIV_TAG_MOD', String(PRIV_TAG_MOD))
 
-    ctx.registerHook('post:afterCreate', async (post) => {
+    ctx.registerHook('post:afterCreate', async (...args: unknown[]) => {
+      const post = args[0] as Post
       if (post.tagId) {
         const db = ctx.kernel.getDB()
         await db.collection('tags').updateOne(
-          { _id: post.tagId },
+          { _id: new ObjectId(post.tagId) },
           { $inc: { postCount: 1 } }
         )
       }
     })
 
-    ctx.registerHook('post:afterDelete', async (post) => {
+    ctx.registerHook('post:afterDelete', async (...args: unknown[]) => {
+      const post = args[0] as Post
       if (post && post.tagId) {
         const db = ctx.kernel.getDB()
         await db.collection('tags').updateOne(
-          { _id: post.tagId },
+          { _id: new ObjectId(post.tagId) },
           { $inc: { postCount: -1 } }
         )
       }

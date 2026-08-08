@@ -14,6 +14,7 @@ class PluginManager {
 
   setServer(server: FastifyInstance) {
     this.server = server
+    return Promise.resolve()
   }
 
   initKernelAPI() {
@@ -28,8 +29,8 @@ class PluginManager {
       setConfig: (key, value) => setDBConfig(key, value),
       hasPriv: (userId, privBit) => privManager.hasPriv(userId, privBit),
       getPrivBit: (name) => privManager.getBit(name),
-      banUser: (userId) => privManager.banUser(userId),
-      unbanUser: (userId) => privManager.unbanUser(userId)
+      banUser: async (userId) => { await privManager.banUser(userId) },
+      unbanUser: async (userId) => { await privManager.unbanUser(userId) }
     }
     return this.kernelAPI
   }
@@ -47,9 +48,9 @@ class PluginManager {
 
     const ctx: PluginContext = {
       kernel: this.kernelAPI,
-      registerHook: (hook, handler) => hookManager.register(hook, handler),
-      registerCommand: (name, fn) => this.commands.set(name, fn),
-      registerPriv: (name, bitExpression, isDefault) => privManager.register(name, bitExpression, isDefault)
+      registerHook: async (hook, handler) => { await hookManager.register(hook, handler) },
+      registerCommand: (name, fn) => { this.commands.set(name,fn) },
+      registerPriv: (name, bitExpression, isDefault) => { privManager.register(name, bitExpression, isDefault) }
     }
 
     await plugin.init(ctx)

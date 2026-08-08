@@ -1,5 +1,4 @@
 import { getDB } from './db.js'
-import { ObjectId } from 'mongodb'
 
 class PrivManager {
   private privMap: Map<string, number> = new Map()
@@ -118,6 +117,7 @@ class PrivManager {
       { uid: userId },
       { $set: { priv, updatedAt: new Date() } }
     )
+    return priv
   }
 
   async addUserPriv(userId: number, privBit: number) {
@@ -135,6 +135,7 @@ class PrivManager {
       { uid: userId },
       { $set: { priv: newPriv, updatedAt: new Date() } }
     )
+    return newPriv
   }
 
   async removeUserPriv(userId: number, privBit: number) {
@@ -164,7 +165,7 @@ class PrivManager {
     )
   }
 
-  async unbanUser(userId: number) {
+  async unbanUser(userId: number): Promise<void> {
     const db = getDB()
     await db.collection('users').updateOne(
       { uid: userId },
@@ -180,7 +181,6 @@ class PrivManager {
 
   async initGuestUser() {
     const db = getDB()
-    
     const guestUser = await db.collection('users').findOne({ uid: 0 })
     if (!guestUser) {
       await db.collection('users').insertOne({
@@ -192,6 +192,7 @@ class PrivManager {
         createdAt: new Date()
       })
     }
+    return await db.collection('users').findOne({ uid: 0 });
   }
 }
 
