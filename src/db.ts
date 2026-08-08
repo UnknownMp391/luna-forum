@@ -18,6 +18,6 @@ export function getDB(): Db {
   return db
 }
 
-export async function disconnect() {
+export async function disconnect(): Promise<void> {
   if (client) await client.close()
 }

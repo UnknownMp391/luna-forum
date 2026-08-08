@@ -16,7 +16,7 @@ export interface DBConfig extends Record<string, unknown> {}
 
 let appConfig: AppConfig
 
-let dbConfig: DBConfig = {}
+const dbConfig: DBConfig = {}
 
 export async function loadConfig(configPath: string = './config.json'): Promise<AppConfig> {
   const fullPath = resolve(configPath)
@@ -69,11 +69,11 @@ export function getDBConfig(): DBConfig {
   return dbConfig
 }
 
-export function getDBConfigValue<T>(key: string, defaultValue : T) {
+export function getDBConfigValue<T>(key: string, defaultValue : T): T {
   return (dbConfig[key] as T) ?? defaultValue
 }
 
-export async function setDBConfig<T>(key: string, value: T) {
+export async function setDBConfig<T>(key: string, value: T): Promise<void> {
   const db = getDB()
 
   await db

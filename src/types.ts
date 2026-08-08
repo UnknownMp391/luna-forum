@@ -12,7 +12,7 @@ export interface Plugin {
 
 export interface PluginContext {
   kernel: KernelAPI
-  registerHook: (hook: string, handler: HookHandler) => void
+  registerHook: (hook: string, handler: HookHandler) => Promise<void>
   registerCommand: (name: string, fn: CommandFn) => void
   registerPriv: (name: string, bitExpression: string, isDefault?: boolean) => void
 }
@@ -59,4 +59,15 @@ export interface User {
 export interface Group {
   name: string
   priv: number
+}
+
+export interface RegisterBody {
+  username: string
+  password: string
+  email: string
+}
+
+export interface LoginBody {
+  username: string
+  password: string
 }

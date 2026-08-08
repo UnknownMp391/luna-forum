@@ -3,7 +3,7 @@ import { HookHandler } from './types'
 class HookManager {
   private hooks: Map<string, HookHandler[]> = new Map()
 
-  register(name: string, handler: HookHandler) {
+  async register(name: string, handler: HookHandler): Promise<void> {
     if (!this.hooks.has(name)) {
       this.hooks.set(name, [handler])
     } else {
@@ -11,7 +11,7 @@ class HookManager {
     }
   }
 
-  async call(name: string, ...args: unknown[]) {
+  async call(name: string, ...args: unknown[]): Promise<unknown[]> {
     const handlers = this.hooks.get(name)
 
     if (!handlers || handlers.length === 0) return []
@@ -26,7 +26,7 @@ class HookManager {
     return results
   }
 
-  remove(name: string, handler: HookHandler) {
+  async remove(name: string, handler: HookHandler): Promise<void> {
     const handlers = this.hooks.get(name)
 
     if (handlers) {

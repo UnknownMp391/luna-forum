@@ -2,7 +2,8 @@ import { privManager } from './privmgr.js'
 import { getDB } from './db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import type { FastifyInstance } from 'fastify'
+import { RegisterBody, LoginBody } from './types.js'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
 
 const PRIV_REGISTER_ACCOUNT = 0
 const PRIV_LOGIN = 1
@@ -33,7 +34,7 @@ export function verifyToken(token: string): { uid: number } | null {
   }
 }
 
-export function getUserIdFromRequest(request: any): number {
+export function getUserIdFromRequest(request: FastifyRequest): number {
   const authHeader = request.headers.authorization
   if (!authHeader) return 0
 
@@ -42,7 +43,7 @@ export function getUserIdFromRequest(request: any): number {
   return payload ? payload.uid : 0
 }
 
-export async function initGuestPriv() {
+export async function initGuestPriv(): Promise<void> {
   const db = getDB()
   const guest = await db.collection('users').findOne({ uid: 0 })
   const guestPriv = BigInt(guest ? String(guest.priv) : '0')
@@ -54,7 +55,7 @@ export async function initGuestPriv() {
 }
 
 export function setupAuthRoutes(server: FastifyInstance): void {
-  server.post('/api/v1/register', async (request: any, reply: any) => {
+  server.post<{ Body: RegisterBody }>('/api/v1/register', async (request, reply) => {
     const { username, password, email } = request.body
     const db = getDB()
 
@@ -97,7 +98,7 @@ export function setupAuthRoutes(server: FastifyInstance): void {
     return reply.code(201).send({ success: true, uid: newUid, username, token })
   })
 
-  server.post('/api/v1/login', async (request: any, reply: any) => {
+  server.post<{ Body: LoginBody }>('/api/v1/login', async (request, reply) => {
     const { username, password } = request.body
     const db = getDB()
 
