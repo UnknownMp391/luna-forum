@@ -7,7 +7,8 @@
   "scripts": {
     "start": "tsx index.ts",
     "build": "tsc",
-    "dev": "tsx watch index.ts"
+    "dev": "tsx watch index.ts",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "author": "",
   "license": "AGPL-3.0-or-later",
@@ -15,21 +16,23 @@
     "@fastify/type-provider-typebox": "^6.1.0",
     "@prisma/client": "^7.8.0",
     "@sinclair/typebox": "^0.34.52",
-    "@types/bcrypt": "^6.0.0",
-    "@types/node": "^26.1.0",
-    "@types/winston": "^2.4.4",
     "bcrypt": "^6.0.0",
     "fastify": "^5.9.0",
-    "fastify-tsconfig": "^3.0.0",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.4.0",
-    "prisma": "^7.8.0",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^26.1.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "eslint": "^10.8.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "prisma": "^7.8.0",
+    "fastify-tsconfig": "^3.0.0"
   }
 }
