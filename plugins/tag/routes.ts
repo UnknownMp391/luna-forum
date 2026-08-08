@@ -1,6 +1,7 @@
 import { Db, ObjectId } from 'mongodb'
 import { KernelAPI } from '../../src/types'
 import { FastifyInstance } from 'fastify'
+import { CreateTagBody, IdAndPostIdParams, DeletePostParams, UpdateTagBody, SortTagBody, MoveTagBody, ModeratorBody, IdParams, PostsQuery } from './types';
 
 const TAG_MAGIC = 500
 const PRIV_TAG_CREATE = TAG_MAGIC + 0
@@ -19,7 +20,7 @@ async function isTagMod(db: Db, tagId: string, userId: number) {
 }
 
 export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
-  server.post('/api/v1/tag/create', async (request, reply) => {
+  server.post<{ Body: CreateTagBody }>('/api/v1/tag/create', async (request, reply) => {
     const { name, parentId, sortOrder } = request.body
 
     const userId = kernel.getUserIdFromRequest(request)
@@ -65,7 +66,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return reply.code(201).send({ ...tag, _id: result.insertedId })
   })
 
-  server.put('/api/v1/tag/:id', async (request, reply) => {
+  server.put<{ Params: IdParams; Body: UpdateTagBody }>('/api/v1/tag/:id', async (request, reply) => {
     const { id } = request.params
 
     const { name, sortOrder, requireTag } = request.body
@@ -80,7 +81,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
       return reply.code(403).send({ error: 'No permission to edit tag' })
     }
 
-    const update = { updatedAt: new Date() }
+    const update: { updatedAt: Date; name?: string; sortOrder?: number; requireTag?: boolean } = { updatedAt: new Date() }
     if (name !== undefined) update.name = name
     if (sortOrder !== undefined) update.sortOrder = sortOrder
     if (requireTag !== undefined) update.requireTag = requireTag
@@ -97,7 +98,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { modified: true }
   })
 
-  server.delete('/api/v1/tag/:id', async (request, reply) => {
+  server.delete<{ Params: IdParams }>('/api/v1/tag/:id', async (request, reply) => {
     const { id } = request.params
 
     const userId = kernel.getUserIdFromRequest(request)
@@ -122,7 +123,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { deleted: true }
   })
 
-  server.put('/api/v1/tag/:id/sort', async (request, reply) => {
+  server.put<{ Params: IdParams; Body: SortTagBody }>('/api/v1/tag/:id/sort', async (request, reply) => {
     const { id } = request.params
 
     const { sortOrder } = request.body
@@ -148,7 +149,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { modified: true }
   })
 
-  server.put('/api/v1/tag/:id/move', async (request, reply) => {
+  server.put<{ Params: IdParams; Body: MoveTagBody }>('/api/v1/tag/:id/move', async (request, reply) => {
     const { id } = request.params
 
     const { newParentId } = request.body
@@ -181,7 +182,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { moved: true }
   })
 
-  server.get('/api/v1/tag/list', async (request, reply) => {
+  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/list', async (request, reply) => {
     const db = kernel.getDB()
 
     const tags = await db.collection('tags')
@@ -192,7 +193,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { tags }
   })
 
-  server.get('/api/v1/tag/:id', async (request, reply) => {
+  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id', async (request, reply) => {
     const { id } = request.params
 
     const db = kernel.getDB()
@@ -205,7 +206,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return tag
   })
 
-  server.get('/api/v1/tag/:id/posts', async (request, reply) => {
+  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id/posts', async (request, reply) => {
     const { id } = request.params
 
     const { page = 1, limit = 20 } = request.query
@@ -231,7 +232,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     }
   })
 
-  server.put('/api/v1/tag/:id/moderator/add', async (request, reply) => {
+  server.put<{ Params: IdParams; Body: ModeratorBody }>('/api/v1/tag/:id/moderator/add', async (request, reply) => {
     const { id } = request.params
 
     const { userId: targetUserId } = request.body
@@ -264,7 +265,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { moderators }
   })
 
-  server.put('/api/v1/tag/:id/moderator/remove', async (request, reply) => {
+  server.put<{ Params: IdParams; Body: ModeratorBody }>('/api/v1/tag/:id/moderator/remove', async (request, reply) => {
     const { id } = request.params
 
     const { userId: targetUserId } = request.body
@@ -293,7 +294,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { moderators }
   })
 
-  server.delete('/api/v1/tag/:id/post/:postId', async (request, reply) => {
+  server.delete<{ Params: DeletePostParams }>('/api/v1/tag/:id/post/:postId', async (request, reply) => {
     const { id, postId } = request.params
 
     const userId = kernel.getUserIdFromRequest(request)
@@ -317,7 +318,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { deleted: true }
   })
 
-  server.put('/api/v1/tag/:id/post/:postId/pin', async (request, reply) => {
+  server.put<{ Params: IdAndPostIdParams }>('/api/v1/tag/:id/post/:postId/pin', async (request, reply) => {
     const { id, postId } = request.params
 
     const userId = kernel.getUserIdFromRequest(request)

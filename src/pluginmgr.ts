@@ -12,8 +12,9 @@ class PluginManager {
   private kernelAPI!: KernelAPI
   private server!: FastifyInstance
 
-  setServer(server: FastifyInstance): Promise<void> {
+  setServer(server: FastifyInstance) {
     this.server = server
+    return Promise.resolve()
   }
 
   initKernelAPI() {

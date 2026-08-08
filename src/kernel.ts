@@ -12,7 +12,7 @@ export class Kernel {
 
   private started: boolean = false
 
-  async boot(configPath?: string): Promise<void> {
+  async boot(configPath?: string) {
     const config = await loadConfig(configPath)
 
     setJWTSecret(config.jwt_secret || 'default-secret')
