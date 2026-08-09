@@ -23,6 +23,11 @@
       "deps": [
         "post"
       ]
+    },
+    {
+      "name": "home",
+      "main": "./plugins/home/index.ts",
+      "deps": []
     }
   ]
 }
