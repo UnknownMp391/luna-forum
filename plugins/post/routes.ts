@@ -7,12 +7,12 @@ import { ErrorBase as ErrorBaseType, ErrorBaseSchema } from '../../src/schema';
 
 const POST_MAGIC = 2;
 const PRIV_POST_CREATE = POST_MAGIC + 0;
-const PRIV_POST_EDIT = POST_MAGIC + 1;
-const PRIV_POST_DELETE = POST_MAGIC + 2;
-const PRIV_POST_VIEW = POST_MAGIC + 3;
+// const PRIV_POST_EDIT = POST_MAGIC + 1;
+// const PRIV_POST_DELETE = POST_MAGIC + 2;
+// const PRIV_POST_VIEW = POST_MAGIC + 3;
 const PRIV_VIEW_ALL_POST = POST_MAGIC + 4;
 const VISIBILITY_PUBLIC = 0;
-const VISIBILITY_PRIVATE = 1;
+// const VISIBILITY_PRIVATE = 1;
 const VISIBILITY_HIDDEN = 2;
 
 async function canViewPost(db: Db, post: Post, userId: number, kernel: KernelAPI) {
@@ -59,7 +59,7 @@ export function setupPostRoutes(server: FastifyInstance, kernel: KernelAPI) {
         }
       }
     },
-    async (request, reply) => {
+    async (request) => {
       const userId = kernel.getUserIdFromRequest(request);
 
       const { page = 1, limit = 20, tagId } = request.query;

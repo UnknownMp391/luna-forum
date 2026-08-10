@@ -42,7 +42,7 @@ export function setupPostPinnedRoutes(server: FastifyInstance, kernel: KernelAPI
     }
     return { success: true, unpinned: true }
   })
-  server.get('/api/v1/post/pinned', async (request, reply) => {
+  server.get('/api/v1/post/pinned', async () => {
     const db = kernel.getDB()
     const posts = await db.collection('posts')
       .find({ pinned: true })
