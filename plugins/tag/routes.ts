@@ -182,7 +182,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return { moved: true }
   })
 
-  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/list', async (request, reply) => {
+  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/list', async () => {
     const db = kernel.getDB()
 
     const tags = await db.collection('tags')
@@ -206,7 +206,7 @@ export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
     return tag
   })
 
-  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id/posts', async (request, reply) => {
+  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id/posts', async (request) => {
     const { id } = request.params
 
     const { page = 1, limit = 20 } = request.query
