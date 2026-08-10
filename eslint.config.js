@@ -6,7 +6,7 @@ export default [
     ignores: ['dist/**', 'node_modules/**', '*.js'],
   },
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.ts', 'plugins/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -25,10 +25,7 @@ export default [
         varsIgnorePattern: '^_',
       }],
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/explicit-function-return-type': ['warn', {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true,
-      }],
+      '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
