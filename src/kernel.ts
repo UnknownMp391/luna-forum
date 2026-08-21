@@ -6,6 +6,7 @@ import { privManager } from './privmgr.js'
 import { registerAuthPrivs, initGuestPriv, setupAuthRoutes, setJWTSecret } from './auth.js'
 import Fastify, { FastifyInstance } from 'fastify'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
+import { fastifyCookie } from '@fastify/cookie'
 
 export class Kernel {
   private server!: FastifyInstance
@@ -28,6 +29,11 @@ export class Kernel {
     await loadDBConfig()
 
     this.server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>()
+
+    this.server.register(fastifyCookie, {
+        secret: config.jwt_secret,
+        hook: 'onRequest',
+    });
 
     this.server.get('/api/v1/health', async () => {
       return { status: 'ok', plugins: Array.from(pluginManager['plugins'].keys()) }

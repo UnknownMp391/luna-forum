@@ -7,91 +7,91 @@ import { getUserIdFromRequest } from './auth.js'
 import { FastifyInstance } from 'fastify'
 
 class PluginManager {
-  private plugins: Map<string, Plugin> = new Map()
-  private commands: Map<string, Function> = new Map()
-  private kernelAPI!: KernelAPI
-  private server!: FastifyInstance
+    private plugins: Map<string, Plugin> = new Map()
+    private commands: Map<string, Function> = new Map()
+    private kernelAPI!: KernelAPI
+    private server!: FastifyInstance
 
-  setServer(server: FastifyInstance) {
-    this.server = server
-    return Promise.resolve()
-  }
-
-  initKernelAPI() {
-    this.kernelAPI = {
-      getDB,
-      getServer: () => this.server,
-      getUserIdFromRequest,
-      callHook: (...args) => hookManager.call(...args),
-      executeCommand: (...args) => this.executeCommand(...args),
-      registerPlugin: (plugin) => this.register(plugin),
-      getConfig: (key, defaultValue) => getDBConfigValue(key, defaultValue),
-      setConfig: (key, value) => setDBConfig(key, value),
-      hasPriv: (userId, privBit) => privManager.hasPriv(userId, privBit),
-      getPrivBit: (name) => privManager.getBit(name),
-      banUser: async (userId) => { await privManager.banUser(userId) },
-      unbanUser: async (userId) => { await privManager.unbanUser(userId) }
-    }
-    return this.kernelAPI
-  }
-
-  async register(plugin: Plugin) {
-    if (this.plugins.has(plugin.name)) {
-      throw new Error(`Plugin ${plugin.name} already registered`)
+    setServer(server: FastifyInstance) {
+        this.server = server
+        return Promise.resolve()
     }
 
-    for (const dep of plugin.deps) {
-      if (!this.plugins.has(dep)) {
-        throw new Error(`Dependency ${dep} not found for plugin ${plugin.name}`)
-      }
+    initKernelAPI() {
+        this.kernelAPI = {
+            getDB,
+            getServer: () => this.server,
+            getUserIdFromRequest,
+            callHook: (...args) => hookManager.call(...args),
+            executeCommand: (...args) => this.executeCommand(...args),
+            registerPlugin: (plugin) => this.register(plugin),
+            getConfig: (key, defaultValue) => getDBConfigValue(key, defaultValue),
+            setConfig: (key, value) => setDBConfig(key, value),
+            hasPriv: (userId, privBit) => privManager.hasPriv(userId, privBit),
+            getPrivBit: (name) => privManager.getBit(name),
+            banUser: async (userId) => { await privManager.banUser(userId) },
+            unbanUser: async (userId) => { await privManager.unbanUser(userId) }
+        }
+        return this.kernelAPI
     }
 
-    const ctx: PluginContext = {
-      kernel: this.kernelAPI,
-      registerHook: async (hook, handler) => { await hookManager.register(hook, handler) },
-      registerCommand: (name, fn) => { this.commands.set(name,fn) },
-      registerPriv: (name, bitExpression, isDefault) => { privManager.register(name, bitExpression, isDefault) }
+    async register(plugin: Plugin) {
+        if (this.plugins.has(plugin.name)) {
+            throw new Error(`Plugin ${plugin.name} already registered`)
+        }
+
+        for (const dep of plugin.deps) {
+            if (!this.plugins.has(dep)) {
+                throw new Error(`Dependency ${dep} not found for plugin ${plugin.name}`)
+            }
+        }
+
+        const ctx: PluginContext = {
+            kernel: this.kernelAPI,
+            registerHook: async (hook, handler) => { await hookManager.register(hook, handler) },
+            registerCommand: (name, fn) => { this.commands.set(name, fn) },
+            registerPriv: (name, bitExpression, isDefault) => { privManager.register(name, bitExpression, isDefault) }
+        }
+
+        await plugin.init(ctx)
+
+        this.plugins.set(plugin.name, plugin)
     }
 
-    await plugin.init(ctx)
+    async activate(name: string) {
+        const plugin = this.plugins.get(name)
 
-    this.plugins.set(plugin.name, plugin)
-  }
+        if (!plugin) throw new Error(`Plugin ${name} not found`)
 
-  async activate(name: string) {
-    const plugin = this.plugins.get(name)
+        await plugin.activate()
+    }
 
-    if (!plugin) throw new Error(`Plugin ${name} not found`)
+    async deactivate(name: string) {
+        const plugin = this.plugins.get(name)
 
-    await plugin.activate()
-  }
+        if (!plugin) throw new Error(`Plugin ${name} not found`)
 
-  async deactivate(name: string) {
-    const plugin = this.plugins.get(name)
+        await plugin.deactivate()
+    }
 
-    if (!plugin) throw new Error(`Plugin ${name} not found`)
+    async executeCommand(name: string, ...args: unknown[]) {
+        const cmd = this.commands.get(name)
 
-    await plugin.deactivate()
-  }
+        if (!cmd) throw new Error(`Command ${name} not found`)
 
-  async executeCommand(name: string, ...args: unknown[]) {
-    const cmd = this.commands.get(name)
+        return cmd(...args)
+    }
 
-    if (!cmd) throw new Error(`Command ${name} not found`)
+    async loadPlugin(manifest: PluginManifest) {
+        const mod = await import('../' + manifest.main)
 
-    return cmd(...args)
-  }
+        const plugin: Plugin = mod.default || mod
 
-  async loadPlugin(manifest: PluginManifest) {
-    const mod = await import('../' + manifest.main)
+        await this.register(plugin)
+    }
 
-    const plugin: Plugin = mod.default || mod
-
-    await this.register(plugin)
-  }
-
-  getPlugin(name: string): Plugin | undefined {
-    return this.plugins.get(name)
-  }
+    getPlugin(name: string): Plugin | undefined {
+        return this.plugins.get(name)
+    }
 }
 export const pluginManager = new PluginManager()

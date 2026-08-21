@@ -10,334 +10,334 @@ const PRIV_TAG_DELETE = TAG_MAGIC + 2
 const PRIV_TAG_MOD = TAG_MAGIC + 3
 
 async function isTagMod(db: Db, tagId: string, userId: number) {
-  const tag = await db
-    .collection('tags')
-    .findOne({ _id: new ObjectId(tagId) })
+    const tag = await db
+        .collection('tags')
+        .findOne({ _id: new ObjectId(tagId) })
 
-  if (!tag) return false
+    if (!tag) return false
 
-  return (tag.moderators || []).includes(userId)
+    return (tag.moderators || []).includes(userId)
 }
 
 export function setupTagRoutes(server: FastifyInstance, kernel: KernelAPI) {
-  server.post<{ Body: CreateTagBody }>('/api/v1/tag/create', async (request, reply) => {
-    const { name, parentId, sortOrder } = request.body
+    server.post<{ Body: CreateTagBody }>('/api/v1/tag/create', async (request, reply) => {
+        const { name, parentId, sortOrder } = request.body
 
-    const userId = kernel.getUserIdFromRequest(request)
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const db = kernel.getDB()
+        const db = kernel.getDB()
 
-    const canCreate = await kernel.hasPriv(userId, PRIV_TAG_CREATE)
-    if (!canCreate) {
-      return reply.code(403).send({ error: 'No permission to create tag' })
-    }
+        const canCreate = await kernel.hasPriv(userId, PRIV_TAG_CREATE)
+        if (!canCreate) {
+            return reply.code(403).send({ error: 'No permission to create tag' })
+        }
 
-    const existing = await db.collection('tags').findOne({ name })
-    if (existing) {
-      return reply.code(409).send({ error: 'Tag already exists' })
-    }
+        const existing = await db.collection('tags').findOne({ name })
+        if (existing) {
+            return reply.code(409).send({ error: 'Tag already exists' })
+        }
 
-    if (parentId) {
-      const parent = await db.collection('tags').findOne({ _id: new ObjectId(parentId) })
-      if (!parent) {
-        return reply.code(404).send({ error: 'Parent tag not found' })
-      }
-    }
+        if (parentId) {
+            const parent = await db.collection('tags').findOne({ _id: new ObjectId(parentId) })
+            if (!parent) {
+                return reply.code(404).send({ error: 'Parent tag not found' })
+            }
+        }
 
-    const maxOrder = await db.collection('tags')
-      .find({ parentId: parentId || null })
-      .sort({ sortOrder: -1 })
-      .limit(1)
-      .toArray()
+        const maxOrder = await db.collection('tags')
+            .find({ parentId: parentId || null })
+            .sort({ sortOrder: -1 })
+            .limit(1)
+            .toArray()
 
-    const order = sortOrder ?? (maxOrder.length > 0 ? maxOrder[0].sortOrder + 1 : 0)
+        const order = sortOrder ?? (maxOrder.length > 0 ? maxOrder[0].sortOrder + 1 : 0)
 
-    const tag = {
-      name,
-      parentId: parentId || null,
-      sortOrder: order,
-      moderators: [],
-      requireTag: false,
-      createdAt: new Date()
-    }
+        const tag = {
+            name,
+            parentId: parentId || null,
+            sortOrder: order,
+            moderators: [],
+            requireTag: false,
+            createdAt: new Date()
+        }
 
-    const result = await db.collection('tags').insertOne(tag)
+        const result = await db.collection('tags').insertOne(tag)
 
-    return reply.code(201).send({ ...tag, _id: result.insertedId })
-  })
+        return reply.code(201).send({ ...tag, _id: result.insertedId })
+    })
 
-  server.put<{ Params: IdParams; Body: UpdateTagBody }>('/api/v1/tag/:id', async (request, reply) => {
-    const { id } = request.params
+    server.put<{ Params: IdParams; Body: UpdateTagBody }>('/api/v1/tag/:id', async (request, reply) => {
+        const { id } = request.params
 
-    const { name, sortOrder, requireTag } = request.body
+        const { name, sortOrder, requireTag } = request.body
 
-    const userId = kernel.getUserIdFromRequest(request)
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const canEdit = await kernel.hasPriv(userId, PRIV_TAG_EDIT)
-    
-    const db = kernel.getDB()
+        const canEdit = await kernel.hasPriv(userId, PRIV_TAG_EDIT)
 
-    if (!canEdit) {
-      return reply.code(403).send({ error: 'No permission to edit tag' })
-    }
+        const db = kernel.getDB()
 
-    const update: { updatedAt: Date; name?: string; sortOrder?: number; requireTag?: boolean } = { updatedAt: new Date() }
-    if (name !== undefined) update.name = name
-    if (sortOrder !== undefined) update.sortOrder = sortOrder
-    if (requireTag !== undefined) update.requireTag = requireTag
+        if (!canEdit) {
+            return reply.code(403).send({ error: 'No permission to edit tag' })
+        }
 
-    const result = await db.collection('tags').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: update }
-    )
+        const update: { updatedAt: Date; name?: string; sortOrder?: number; requireTag?: boolean } = { updatedAt: new Date() }
+        if (name !== undefined) update.name = name
+        if (sortOrder !== undefined) update.sortOrder = sortOrder
+        if (requireTag !== undefined) update.requireTag = requireTag
 
-    if (result.modifiedCount === 0) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+        const result = await db.collection('tags').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: update }
+        )
 
-    return { modified: true }
-  })
+        if (result.modifiedCount === 0) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-  server.delete<{ Params: IdParams }>('/api/v1/tag/:id', async (request, reply) => {
-    const { id } = request.params
+        return { modified: true }
+    })
 
-    const userId = kernel.getUserIdFromRequest(request)
+    server.delete<{ Params: IdParams }>('/api/v1/tag/:id', async (request, reply) => {
+        const { id } = request.params
 
-    const db = kernel.getDB()
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const canDelete = await kernel.hasPriv(userId, PRIV_TAG_DELETE)
-    if (!canDelete) {
-      return reply.code(403).send({ error: 'No permission to delete tag' })
-    }
+        const db = kernel.getDB()
 
-    const children = await db.collection('tags').findOne({ parentId: id })
-    if (children) {
-      return reply.code(400).send({ error: 'Tag has sub-tags, delete them first' })
-    }
+        const canDelete = await kernel.hasPriv(userId, PRIV_TAG_DELETE)
+        if (!canDelete) {
+            return reply.code(403).send({ error: 'No permission to delete tag' })
+        }
 
-    const result = await db.collection('tags').deleteOne({ _id: new ObjectId(id) })
-    if (result.deletedCount === 0) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+        const children = await db.collection('tags').findOne({ parentId: id })
+        if (children) {
+            return reply.code(400).send({ error: 'Tag has sub-tags, delete them first' })
+        }
 
-    return { deleted: true }
-  })
+        const result = await db.collection('tags').deleteOne({ _id: new ObjectId(id) })
+        if (result.deletedCount === 0) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-  server.put<{ Params: IdParams; Body: SortTagBody }>('/api/v1/tag/:id/sort', async (request, reply) => {
-    const { id } = request.params
+        return { deleted: true }
+    })
 
-    const { sortOrder } = request.body
+    server.put<{ Params: IdParams; Body: SortTagBody }>('/api/v1/tag/:id/sort', async (request, reply) => {
+        const { id } = request.params
 
-    const userId = kernel.getUserIdFromRequest(request)
-    
-    const db = kernel.getDB()
+        const { sortOrder } = request.body
 
-    const canEdit = await kernel.hasPriv(userId, PRIV_TAG_EDIT)
-    if (!canEdit) {
-      return reply.code(403).send({ error: 'No permission' })
-    }
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const result = await db.collection('tags').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { sortOrder, updatedAt: new Date() } }
-    )
+        const db = kernel.getDB()
 
-    if (result.modifiedCount === 0) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+        const canEdit = await kernel.hasPriv(userId, PRIV_TAG_EDIT)
+        if (!canEdit) {
+            return reply.code(403).send({ error: 'No permission' })
+        }
 
-    return { modified: true }
-  })
+        const result = await db.collection('tags').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { sortOrder, updatedAt: new Date() } }
+        )
 
-  server.put<{ Params: IdParams; Body: MoveTagBody }>('/api/v1/tag/:id/move', async (request, reply) => {
-    const { id } = request.params
+        if (result.modifiedCount === 0) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-    const { newParentId } = request.body
+        return { modified: true }
+    })
 
-    const userId = kernel.getUserIdFromRequest(request)
+    server.put<{ Params: IdParams; Body: MoveTagBody }>('/api/v1/tag/:id/move', async (request, reply) => {
+        const { id } = request.params
 
-    const db = kernel.getDB()
+        const { newParentId } = request.body
 
-    const canEdit = await kernel.hasPriv(userId, PRIV_TAG_EDIT)
-    if (!canEdit) {
-      return reply.code(403).send({ error: 'No permission' })
-    }
+        const userId = kernel.getUserIdFromRequest(request)
 
-    if (newParentId) {
-      const parent = await db.collection('tags').findOne({ _id: new ObjectId(newParentId) })
-      if (!parent) {
-        return reply.code(404).send({ error: 'Parent tag not found' })
-      }
-    }
+        const db = kernel.getDB()
 
-    const result = await db.collection('tags').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { parentId: newParentId || null, updatedAt: new Date() } }
-    )
+        const canEdit = await kernel.hasPriv(userId, PRIV_TAG_EDIT)
+        if (!canEdit) {
+            return reply.code(403).send({ error: 'No permission' })
+        }
 
-    if (result.modifiedCount === 0) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+        if (newParentId) {
+            const parent = await db.collection('tags').findOne({ _id: new ObjectId(newParentId) })
+            if (!parent) {
+                return reply.code(404).send({ error: 'Parent tag not found' })
+            }
+        }
 
-    return { moved: true }
-  })
+        const result = await db.collection('tags').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { parentId: newParentId || null, updatedAt: new Date() } }
+        )
 
-  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/list', async () => {
-    const db = kernel.getDB()
+        if (result.modifiedCount === 0) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-    const tags = await db.collection('tags')
-      .find()
-      .sort({ sortOrder: 1 })
-      .toArray()
+        return { moved: true }
+    })
 
-    return { tags }
-  })
+    server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/list', async () => {
+        const db = kernel.getDB()
 
-  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id', async (request, reply) => {
-    const { id } = request.params
+        const tags = await db.collection('tags')
+            .find()
+            .sort({ sortOrder: 1 })
+            .toArray()
 
-    const db = kernel.getDB()
+        return { tags }
+    })
 
-    const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) })
-    if (!tag) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+    server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id', async (request, reply) => {
+        const { id } = request.params
 
-    return tag
-  })
+        const db = kernel.getDB()
 
-  server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id/posts', async (request) => {
-    const { id } = request.params
+        const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) })
+        if (!tag) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-    const { page = 1, limit = 20 } = request.query
+        return tag
+    })
 
-    const db = kernel.getDB()
+    server.get<{ Params: IdParams; Querystring: PostsQuery }>('/api/v1/tag/:id/posts', async (request) => {
+        const { id } = request.params
 
-    const skip = (Number(page) - 1) * Number(limit)
+        const { page = 1, limit = 20 } = request.query
 
-    const posts = await db.collection('posts')
-      .find({ tagId: id })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit))
-      .toArray()
+        const db = kernel.getDB()
 
-    const total = await db.collection('posts').countDocuments({ tagId: id })
+        const skip = (Number(page) - 1) * Number(limit)
 
-    return {
-      posts,
-      total,
-      page: Number(page),
-      limit: Number(limit)
-    }
-  })
+        const posts = await db.collection('posts')
+            .find({ tagId: id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit))
+            .toArray()
 
-  server.put<{ Params: IdParams; Body: ModeratorBody }>('/api/v1/tag/:id/moderator/add', async (request, reply) => {
-    const { id } = request.params
+        const total = await db.collection('posts').countDocuments({ tagId: id })
 
-    const { userId: targetUserId } = request.body
+        return {
+            posts,
+            total,
+            page: Number(page),
+            limit: Number(limit)
+        }
+    })
 
-    const userId = kernel.getUserIdFromRequest(request)
+    server.put<{ Params: IdParams; Body: ModeratorBody }>('/api/v1/tag/:id/moderator/add', async (request, reply) => {
+        const { id } = request.params
 
-    const db = kernel.getDB()
+        const { userId: targetUserId } = request.body
 
-    const canManage = await kernel.hasPriv(userId, PRIV_TAG_MOD)
+        const userId = kernel.getUserIdFromRequest(request)
 
-    if (!canManage) {
-      return reply.code(403).send({ error: 'No permission' })
-    }
+        const db = kernel.getDB()
 
-    const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) })
-    if (!tag) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+        const canManage = await kernel.hasPriv(userId, PRIV_TAG_MOD)
 
-    const moderators = tag.moderators || []
-    if (!moderators.includes(targetUserId)) {
-      moderators.push(targetUserId)
-    }
+        if (!canManage) {
+            return reply.code(403).send({ error: 'No permission' })
+        }
 
-    await db.collection('tags').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { moderators, updatedAt: new Date() } }
-    )
+        const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) })
+        if (!tag) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-    return { moderators }
-  })
+        const moderators = tag.moderators || []
+        if (!moderators.includes(targetUserId)) {
+            moderators.push(targetUserId)
+        }
 
-  server.put<{ Params: IdParams; Body: ModeratorBody }>('/api/v1/tag/:id/moderator/remove', async (request, reply) => {
-    const { id } = request.params
+        await db.collection('tags').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { moderators, updatedAt: new Date() } }
+        )
 
-    const { userId: targetUserId } = request.body
+        return { moderators }
+    })
 
-    const userId = kernel.getUserIdFromRequest(request)
+    server.put<{ Params: IdParams; Body: ModeratorBody }>('/api/v1/tag/:id/moderator/remove', async (request, reply) => {
+        const { id } = request.params
 
-    const db = kernel.getDB()
+        const { userId: targetUserId } = request.body
 
-    const canManage = await kernel.hasPriv(userId, PRIV_TAG_MOD)
-    if (!canManage) {
-      return reply.code(403).send({ error: 'No permission' })
-    }
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) })
-    if (!tag) {
-      return reply.code(404).send({ error: 'Tag not found' })
-    }
+        const db = kernel.getDB()
 
-    const moderators = (tag.moderators || []).filter((m: number) => m !== targetUserId)
+        const canManage = await kernel.hasPriv(userId, PRIV_TAG_MOD)
+        if (!canManage) {
+            return reply.code(403).send({ error: 'No permission' })
+        }
 
-    await db.collection('tags').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { moderators, updatedAt: new Date() } }
-    )
+        const tag = await db.collection('tags').findOne({ _id: new ObjectId(id) })
+        if (!tag) {
+            return reply.code(404).send({ error: 'Tag not found' })
+        }
 
-    return { moderators }
-  })
+        const moderators = (tag.moderators || []).filter((m: number) => m !== targetUserId)
 
-  server.delete<{ Params: DeletePostParams }>('/api/v1/tag/:id/post/:postId', async (request, reply) => {
-    const { id, postId } = request.params
+        await db.collection('tags').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { moderators, updatedAt: new Date() } }
+        )
 
-    const userId = kernel.getUserIdFromRequest(request)
+        return { moderators }
+    })
 
-    const db = kernel.getDB()
+    server.delete<{ Params: DeletePostParams }>('/api/v1/tag/:id/post/:postId', async (request, reply) => {
+        const { id, postId } = request.params
 
-    const mod = await isTagMod(db, id, userId)
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const hasPriv = await kernel.hasPriv(userId, PRIV_TAG_MOD)
+        const db = kernel.getDB()
 
-    if (!mod && !hasPriv) {
-      return reply.code(403).send({ error: 'Not a moderator of this tag' })
-    }
+        const mod = await isTagMod(db, id, userId)
 
-    const result = await db.collection('posts').deleteOne({ _id: new ObjectId(postId), tagId: id })
+        const hasPriv = await kernel.hasPriv(userId, PRIV_TAG_MOD)
 
-    if (result.deletedCount === 0) {
-      return reply.code(404).send({ error: 'Post not found' })
-    }
+        if (!mod && !hasPriv) {
+            return reply.code(403).send({ error: 'Not a moderator of this tag' })
+        }
 
-    return { deleted: true }
-  })
+        const result = await db.collection('posts').deleteOne({ _id: new ObjectId(postId), tagId: id })
 
-  server.put<{ Params: IdAndPostIdParams }>('/api/v1/tag/:id/post/:postId/pin', async (request, reply) => {
-    const { id, postId } = request.params
+        if (result.deletedCount === 0) {
+            return reply.code(404).send({ error: 'Post not found' })
+        }
 
-    const userId = kernel.getUserIdFromRequest(request)
+        return { deleted: true }
+    })
 
-    const db = kernel.getDB()
+    server.put<{ Params: IdAndPostIdParams }>('/api/v1/tag/:id/post/:postId/pin', async (request, reply) => {
+        const { id, postId } = request.params
 
-    const mod = await isTagMod(db, id, userId)
+        const userId = kernel.getUserIdFromRequest(request)
 
-    const hasPriv = await kernel.hasPriv(userId, PRIV_TAG_MOD)
+        const db = kernel.getDB()
 
-    if (!mod && !hasPriv) {
-      return reply.code(403).send({ error: 'Not a moderator of this tag' })
-    }
+        const mod = await isTagMod(db, id, userId)
 
-    await db.collection('posts').updateOne(
-      { _id: new ObjectId(postId), tagId: id },
-      { $set: { pinned: true, pinnedAt: new Date() } }
-    )
+        const hasPriv = await kernel.hasPriv(userId, PRIV_TAG_MOD)
 
-    return { pinned: true }
-  })
+        if (!mod && !hasPriv) {
+            return reply.code(403).send({ error: 'Not a moderator of this tag' })
+        }
+
+        await db.collection('posts').updateOne(
+            { _id: new ObjectId(postId), tagId: id },
+            { $set: { pinned: true, pinnedAt: new Date() } }
+        )
+
+        return { pinned: true }
+    })
 }
