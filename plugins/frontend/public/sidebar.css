@@ -11,6 +11,13 @@
     --sc: 64px;
 }
 
+.sidebar iconify-icon {
+    position: relative;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -148,7 +155,10 @@ body {
     white-space: nowrap;
     overflow: hidden;
     gap: 12px;
-    transition: background .15s;
+}
+
+.nav-item iconify-icon {
+    vertical-align: middle;
 }
 
 .nav-item:hover {

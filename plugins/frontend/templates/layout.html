@@ -3,35 +3,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Luna Forum">
 <html lang="zh-cn">
-    <head>
-        <title>{% block title %}{{ site.name }} - {{ pagename }}{% endblock %}</title>
-        <script src="/static/fluentui/web-components.min.js"></script>
-        <script src="/static/sidebar.js"></script>
-        <link rel="stylesheet" href="/static/sidebar.css">
-    </head>
-    <body>
-        <aside class="sidebar" data-lf-drawer-target="lf-sidebar">
-            <div class="header">
-                <div class="logo"><span class="logo-text">{{ title }}</span></div>
-                <button class="toggle" data-lf-drawer-toggle="lf-sidebar"><span><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5303 4.21967C15.8232 4.51256 15.8232 4.98744 15.5303 5.28033L8.81066 12L15.5303 18.7197C15.8232 19.0126 15.8232 19.4874 15.5303 19.7803C15.2374 20.0732 14.7626 20.0732 14.4697 19.7803L7.21967 12.5303C6.92678 12.2374 6.92678 11.7626 7.21967 11.4697L14.4697 4.21967C14.7626 3.92678 15.2374 3.92678 15.5303 4.21967Z" fill="currentColor"></path></svg></span></button>
+
+<head>
+    <title>{% block title %}{{ site.name }} - {{ pagename }}{% endblock %}</title>
+    <script src="/static/fluentui/web-components.min.js"></script>
+    <script src="/static/sidebar.js"></script>
+    <script src="/static/fluent-icon/iconify-icon.min.js"></script>
+    <link rel="stylesheet" href="/static/sidebar.css">
+    <link rel="stylesheet" href="/static/lfstyle-v1.css">
+    <script> document.addEventListener('DOMContentLoaded', () => { callDrawerAfterLoading("{{ pagename }}"); }); </script>
+</head>
+
+<body>
+    <aside class="sidebar" data-lf-drawer-target="lf-sidebar">
+        <div class="header">
+            <div class="logo"><span class="logo-text">{{ title }}</span></div>
+            <button class="toggle" data-lf-drawer-toggle="lf-sidebar">
+                <span>
+                    <iconify-icon icon="fluent:ios-arrow-ltr-24-regular"></i>
+                </span>
+            </button>
+        </div>
+        <nav class="nav">
+            <div class="nav-item" data-title="Dev Layout Preview">
+                <span><iconify-icon icon="fluent:home-24-regular"></iconify-icon></span>
+                <span class="nav-label">Dev Layout Preview</span>
             </div>
-            <nav class="nav">
-                <div class="nav-item active" data-title="首页"><span class="nav-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.5495 2.53189C11.3874 1.82531 12.6126 1.82531 13.4505 2.5319L20.2005 8.224C20.7074 8.65152 21 9.2809 21 9.94406V19.7468C21 20.7133 20.2165 21.4968 19.25 21.4968H15.75C14.7835 21.4968 14 20.7133 14 19.7468V14.2468C14 14.1088 13.8881 13.9968 13.75 13.9968H10.25C10.1119 13.9968 9.99999 14.1088 9.99999 14.2468V19.7468C9.99999 20.7133 9.2165 21.4968 8.25 21.4968H4.75C3.7835 21.4968 3 20.7133 3 19.7468V9.94406C3 9.2809 3.29255 8.65152 3.79952 8.224L10.5495 2.53189ZM12.4835 3.6786C12.2042 3.44307 11.7958 3.44307 11.5165 3.6786L4.76651 9.37071C4.59752 9.51321 4.5 9.72301 4.5 9.94406V19.7468C4.5 19.8849 4.61193 19.9968 4.75 19.9968H8.25C8.38807 19.9968 8.49999 19.8849 8.49999 19.7468V14.2468C8.49999 13.2803 9.2835 12.4968 10.25 12.4968H13.75C14.7165 12.4968 15.5 13.2803 15.5 14.2468V19.7468C15.5 19.8849 15.6119 19.9968 15.75 19.9968H19.25C19.3881 19.9968 19.5 19.8849 19.5 19.7468V9.94406C19.5 9.72301 19.4025 9.51321 19.2335 9.37071L12.4835 3.6786Z" fill="currentColor"/></svg></span><span class="nav-label">首页</span></div>
-            </nav>
-            <div class="footer">
-                <div class="user"><fluent-avatar data-color="neutral" class="avatar"></fluent-avatar><div class="user-info"><div class="user-name">Luna User</div><div class="user-role">版主</div></div></div>
-                <fluent-avatar data-color="neutral" class="mini-avatar"></fluent-avatar>
+        </nav>
+        <div class="footer">
+            <div class="user">
+                <fluent-avatar data-color="neutral" class="avatar"></fluent-avatar>
+                <div class="user-info">
+                    {% if user %}
+                    <div class="user-name">{{ user.username }}</div>
+                    {% else %}
+                    <div class="user-name"><fluent-link href="/login" tabindex="0">登录</fluent-link></div>
+                    {% endif %}
+                </div>
             </div>
-        </aside>
-        <main class="content-area">
-            <header class="topbar">
-                <button class="menu-toggle" data-lf-drawer-menu="lf-sidebar">☰</button>
-                <h1 class="title" data-lf-drawer-title>{{ page_name }}</h1>
-            </header>
-            <div class="content">
-                {% block page_content %}{% endblock %}
-            </div>
-        </main>
-        <div class="overlay" data-lf-drawer-overlay></div>
-    </body>
+            <fluent-avatar data-color="neutral" class="mini-avatar"></fluent-avatar>
+        </div>
+    </aside>
+    <!--main area-->
+    <main class="content-area">
+        <header class="topbar">
+            <button class="menu-toggle" data-lf-drawer-menu="lf-sidebar"></button>
+            <h1 class="title" data-lf-drawer-title>{{ pagename }}</h1>
+        </header>
+        <div class="content">
+            {% block page_content %}{% endblock %}
+        </div>
+    </main>
+    <div class="overlay" data-lf-drawer-overlay></div>
+</body>
+
 </html>

@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import type { RenderData } from './types.js';
 import { t } from './i18n.js';
 import { getConfig } from '../../src/config.js';
+import { getCurrentUser } from '../../src/auth.js';
 
 interface FileSystemLoaderLike {
     searchPaths: string[];
@@ -12,6 +13,12 @@ interface FileSystemLoaderLike {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const templatesPath = resolve(__dirname, 'templates');
 const env = nunjucks.configure(templatesPath, { autoescape: true });
+
+let currentRequest: unknown = null;
+
+export function setRequest(request: unknown): void {
+    currentRequest = request;
+}
 
 function getLoader(environment: nunjucks.Environment): FileSystemLoaderLike {
     return (environment as unknown as { loader: FileSystemLoaderLike }).loader;
@@ -36,25 +43,29 @@ function getSiteInfo(): Record<string, string> {
             description: config.site?.description ?? ''
         };
     } catch {
-        return {
-            name: 'Luna Forum',
-            description: ''
-        };
+        return { name: 'Luna Forum', description: '' };
     }
 }
 
-export function renderPage(template: string, data: RenderData = {}): string {
+export async function renderPage(
+    template: string,
+    data: RenderData = {}
+): Promise<string> {
     const site = getSiteInfo();
     const merged: Record<string, unknown> = {
         ...data,
         site,
+        user: null
     };
+    if (currentRequest) {
+        merged.user = await getCurrentUser(currentRequest);
+    }
     if (!merged.title) {
         merged.title = site.name;
     }
-    return env.render(template, merged as RenderData);
+    return env.render(template, merged as RenderData) as string;
 }
 
 export function renderTemplate(template: string, data: RenderData = {}): string {
-    return env.render(template, data);
+    return env.render(template, data) as string;
 }

@@ -76,3 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
         sync_state();
     });
 });
+
+function callDrawerAfterLoading(str) {
+    document.querySelectorAll('.nav-item').forEach(n => {
+        const title = n.getAttribute('data-title');
+        if(title === str) {
+            n.classList.add('active');
+        }
+    });
+}

@@ -34,6 +34,28 @@ export function verifyToken(token: string): { uid: number } | null {
     }
 }
 
+export async function getCurrentUser(request: any): Promise<Record<string, unknown> | null> {
+    const userId = getUserIdFromRequest(request);
+    if (userId === 0) return null;
+    const db = getDB();
+    const user = await db.collection('users').findOne(
+        { uid: userId },
+        { projection: { password: 0, twofaSecret: 0, _id: 0 } }
+    );
+    if (!user) return null;
+    const safeUser: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(user)) {
+        if (value instanceof Date) {
+            safeUser[key] = value.toISOString();
+        } else if (value && typeof value === 'object' && 'toString' in value) {
+            safeUser[key] = String(value);
+        } else {
+            safeUser[key] = value;
+        }
+    }
+    return safeUser;
+}
+
 function setAuthCookie(reply: any, token: string): void {
     reply.setCookie('client_key', token, {
         httpOnly: true,
