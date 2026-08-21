@@ -15,7 +15,7 @@ const homePlugin: Plugin & { pageData: string } = {
 
     const server = ctx.kernel.getServer();
     
-    server.get('/', {
+    server.get('/api', {
       schema: {
         response: {
           200: Type.String()
