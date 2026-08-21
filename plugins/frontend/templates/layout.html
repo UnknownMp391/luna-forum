@@ -15,46 +15,48 @@
 </head>
 
 <body>
-    <aside class="sidebar" data-lf-drawer-target="lf-sidebar">
-        <div class="header">
-            <div class="logo"><span class="logo-text">{{ title }}</span></div>
-            <button class="toggle" data-lf-drawer-toggle="lf-sidebar">
+    <aside class="lf-sidebar" data-lf-drawer-target="lf-sidebar">
+        <div class="lf-header">
+            <div class="lf-logo"><span class="lf-logo-text">{{ title }}</span></div>
+            <button class="lf-toggle" data-lf-drawer-toggle="lf-sidebar">
                 <span>
                     <iconify-icon icon="fluent:ios-arrow-ltr-24-regular"></i>
                 </span>
             </button>
         </div>
-        <nav class="nav">
-            <div class="nav-item" data-title="Dev Layout Preview">
-                <span><iconify-icon icon="fluent:home-24-regular"></iconify-icon></span>
-                <span class="nav-label">Dev Layout Preview</span>
+        <nav class="lf-nav">
+            <div class="lf-nav-item" data-title="Dev Layout Preview">
+                <span class="lf-nav-icon"><iconify-icon icon="fluent:home-24-regular"></iconify-icon></span>
+                <span class="lf-nav-label">Dev Layout Preview</span>
             </div>
         </nav>
-        <div class="footer">
-            <div class="user">
-                <fluent-avatar data-color="neutral" class="avatar"></fluent-avatar>
-                <div class="user-info">
+        <div class="lf-footer">
+            <div class="lf-user">
+                <fluent-avatar data-color="neutral" class="lf-avatar"></fluent-avatar>
+                <div class="lf-user-info">
                     {% if user %}
-                    <div class="user-name">{{ user.username }}</div>
+                    <div class="lf-user-name">{{ user.username }}</div>
                     {% else %}
-                    <div class="user-name"><fluent-link href="/login" tabindex="0">登录</fluent-link></div>
+                    <div class="lf-user-name">未登录</div>
+                    <div class="lf-user-role"><fluent-link href="/login" tabindex="0">点此登录</fluent-link></div>
                     {% endif %}
+                    
                 </div>
             </div>
-            <fluent-avatar data-color="neutral" class="mini-avatar"></fluent-avatar>
+            <fluent-avatar data-color="neutral" class="lf-mini-avatar"></fluent-avatar>
         </div>
     </aside>
     <!--main area-->
-    <main class="content-area">
-        <header class="topbar">
-            <button class="menu-toggle" data-lf-drawer-menu="lf-sidebar"></button>
-            <h1 class="title" data-lf-drawer-title>{{ pagename }}</h1>
+    <main class="lf-content-area">
+        <header class="lf-topbar">
+            <button class="lf-menu-toggle" data-lf-drawer-menu="lf-sidebar"></button>
+            <h1 class="lf-title" data-lf-drawer-title>{{ pagename }}</h1>
         </header>
-        <div class="content">
+        <div class="lf-content">
             {% block page_content %}{% endblock %}
         </div>
     </main>
-    <div class="overlay" data-lf-drawer-overlay></div>
+    <div class="lf-overlay" data-lf-drawer-overlay></div>
 </body>
 
 </html>

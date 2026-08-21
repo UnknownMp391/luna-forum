@@ -1,17 +1,17 @@
 :root {
-    --p: #0078d4;
-    --bg: #faf9f8;
-    --s: rgba(255, 255, 255, .8);
-    --t: #323130;
-    --ts: #605e5c;
-    --b: rgba(237, 235, 233, .5);
-    --h: rgba(243, 242, 241, .5);
-    --al: rgba(239, 246, 252, .5);
-    --sw: 260px;
-    --sc: 64px;
+    --lf-p: #0078d4;
+    --lf-bg: #faf9f8;
+    --lf-s: rgba(255, 255, 255, .8);
+    --lf-t: #323130;
+    --lf-ts: #605e5c;
+    --lf-b: rgba(237, 235, 233, .5);
+    --lf-h: rgba(243, 242, 241, .5);
+    --lf-al: rgba(239, 246, 252, .5);
+    --lf-sw: 260px;
+    --lf-sc: 64px;
 }
 
-.sidebar iconify-icon {
+.lf-sidebar iconify-icon {
     position: relative;
     font-size: 24px;
     width: 24px;
@@ -26,55 +26,55 @@
 
 body {
     font-family: 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--t);
+    background: var(--lf-bg);
+    color: var(--lf-t);
     height: 100vh;
     overflow: hidden;
     display: flex;
 }
 
-.sidebar {
-    background: var(--s);
+.lf-sidebar {
+    background: var(--lf-s);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    width: var(--sw);
+    width: var(--lf-sw);
     transition: width .25s, transform .25s;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border-right: 1px solid var(--b);
+    border-right: 1px solid var(--lf-b);
     flex-shrink: 0;
     z-index: 100;
 }
 
-.sidebar.collapsed {
-    width: var(--sc);
+.lf-sidebar.lf-collapsed {
+    width: var(--lf-sc);
 }
 
-.sidebar.mobile {
+.lf-sidebar.lf-mobile {
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
     transform: translateX(-100%);
     z-index: 1000;
-    width: var(--sw) !important;
+    width: var(--lf-sw) !important;
 }
 
-.sidebar.mobile.open {
+.lf-sidebar.lf-mobile.lf-open {
     transform: translateX(0);
 }
 
-.header {
+.lf-header {
     padding: 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-height: 60px;
-    border-bottom: 1px solid var(--b);
+    border-bottom: 1px solid var(--lf-b);
 }
 
-.logo {
+.lf-logo {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -84,15 +84,15 @@ body {
     transition: opacity .3s;
 }
 
-.collapsed .logo {
+.lf-collapsed .lf-logo {
     opacity: 0;
     pointer-events: none;
 }
 
-.logo-icon {
+.lf-logo-icon {
     width: 32px;
     height: 32px;
-    background: var(--p);
+    background: var(--lf-p);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -102,18 +102,18 @@ body {
     flex-shrink: 0;
 }
 
-.logo-text {
+.lf-logo-text {
     font-weight: 600;
     font-size: 24px;
     white-space: nowrap;
 }
 
-.toggle {
+.lf-toggle {
     background: none;
     border: none;
     cursor: pointer;
     padding: 8px;
-    color: var(--ts);
+    color: var(--lf-ts);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -122,30 +122,30 @@ body {
     z-index: 1;
 }
 
-.toggle span {
+.lf-toggle span {
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.toggle svg {
+.lf-toggle iconify-icon {
     transition: transform .5s cubic-bezier(.34, 1.56, .64, 1);
     pointer-events: none;
 }
 
-.collapsed .toggle svg {
+.lf-collapsed .lf-toggle iconify-icon {
     transform: rotate(180deg);
 }
 
-.nav {
+.lf-nav {
     flex: 1;
     padding: 12px 8px;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.nav-item {
+.lf-nav-item {
     display: flex;
     align-items: center;
     padding: 10px 12px;
@@ -157,21 +157,21 @@ body {
     gap: 12px;
 }
 
-.nav-item iconify-icon {
+.lf-nav-item iconify-icon {
     vertical-align: middle;
 }
 
-.nav-item:hover {
-    background: var(--h);
+.lf-nav-item:hover {
+    background: var(--lf-h);
 }
 
-.nav-item.active {
-    background: var(--al);
-    color: var(--p);
+.lf-nav-item.lf-active {
+    background: var(--lf-al);
+    color: var(--lf-p);
     font-weight: 500;
 }
 
-.nav-icon {
+.lf-nav-icon {
     flex-shrink: 0;
     font-size: 18px;
     display: flex;
@@ -180,28 +180,28 @@ body {
     pointer-events: none;
 }
 
-.nav-icon svg {
+.lf-nav-icon svg {
     pointer-events: none;
 }
 
-.nav-label {
+.lf-nav-label {
     font-size: 14px;
     white-space: nowrap;
     opacity: 1;
     transition: opacity .3s;
 }
 
-.collapsed .nav-label {
+.lf-collapsed .lf-nav-label {
     opacity: 0;
     pointer-events: none;
 }
 
-.footer {
+.lf-footer {
     padding: 12px;
-    border-top: 1px solid var(--b);
+    border-top: 1px solid var(--lf-b);
 }
 
-.user {
+.lf-user {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -212,13 +212,13 @@ body {
     transition: opacity .3s;
 }
 
-.collapsed .user {
+.lf-collapsed .lf-user {
     opacity: 0;
     pointer-events: none;
     position: absolute;
 }
 
-.avatar {
+.lf-avatar {
     width: 32px;
     height: 32px;
     background: #f0f0f0;
@@ -230,23 +230,23 @@ body {
     flex-shrink: 0;
 }
 
-.user-info {
+.lf-user-info {
     display: flex;
     flex-direction: column;
     white-space: nowrap;
 }
 
-.user-name {
+.lf-user-name {
     font-size: 13px;
     font-weight: 500;
 }
 
-.user-role {
+.lf-user-role {
     font-size: 11px;
-    color: var(--ts);
+    color: var(--lf-ts);
 }
 
-.mini-avatar {
+.lf-mini-avatar {
     display: none;
     background: #f0f0f0;
     width: 32px;
@@ -260,20 +260,20 @@ body {
     transition: opacity .3s;
 }
 
-.collapsed .mini-avatar {
+.lf-collapsed .lf-mini-avatar {
     display: flex;
     opacity: 1;
 }
 
-.content-area {
+.lf-content-area {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
-.topbar {
-    background: var(--s);
+.lf-topbar {
+    background: var(--lf-s);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     padding: 12px 24px;
@@ -281,10 +281,10 @@ body {
     align-items: center;
     gap: 16px;
     min-height: 60px;
-    border-bottom: 1px solid var(--b);
+    border-bottom: 1px solid var(--lf-b);
 }
 
-.menu-toggle {
+.lf-menu-toggle {
     display: none;
     background: none;
     border: none;
@@ -293,18 +293,18 @@ body {
     padding: 8px;
 }
 
-.title {
+.lf-title {
     font-size: 18px;
     font-weight: 600;
 }
 
-.content {
+.lf-content {
     flex: 1;
     padding: 24px;
     overflow-y: auto;
 }
 
-.overlay {
+.lf-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, .4);
@@ -316,17 +316,17 @@ body {
     transition: opacity .3s;
 }
 
-.overlay.show {
+.lf-overlay.lf-show {
     opacity: 1;
     visibility: visible;
 }
 
 @media (max-width: 768px) {
-    .menu-toggle {
+    .lf-menu-toggle {
         display: block;
     }
 
-    .toggle {
+    .lf-toggle {
         display: none;
     }
 }
