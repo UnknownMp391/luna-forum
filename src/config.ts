@@ -4,85 +4,89 @@ import { getDB } from './db.js'
 import { PluginConfig } from './types.js'
 
 export interface AppConfig {
-  mongodb: {
-    uri: string
-    dbName: string
-  }
-  jwt_secret: string
-  plugins: PluginConfig[]
+    mongodb: {
+        uri: string
+        dbName: string
+    }
+    site?: {
+        name: string
+        description: string
+    }
+    jwt_secret: string
+    plugins: PluginConfig[]
 }
 
-export interface DBConfig extends Record<string, unknown> {}
+export interface DBConfig extends Record<string, unknown> { }
 
 let appConfig: AppConfig
 
 const dbConfig: DBConfig = {}
 
 export async function loadConfig(configPath: string = './config.json'): Promise<AppConfig> {
-  const fullPath = resolve(configPath)
-  
-  if (!existsSync(fullPath)) {
-    throw new Error(`Config file not found: ${fullPath}`)
-  }
+    const fullPath = resolve(configPath)
 
-  const fileContent = readFileSync(fullPath, 'utf-8')
-  appConfig = JSON.parse(fileContent) as AppConfig
+    if (!existsSync(fullPath)) {
+        throw new Error(`Config file not found: ${fullPath}`)
+    }
 
-  if (!appConfig.mongodb?.uri) {
-    throw new Error('MongoDB URI is required in config.json')
-  }
+    const fileContent = readFileSync(fullPath, 'utf-8')
+    appConfig = JSON.parse(fileContent) as AppConfig
 
-  return appConfig
+    if (!appConfig.mongodb?.uri) {
+        throw new Error('MongoDB URI is required in config.json')
+    }
+
+    return appConfig
 }
 
 export async function loadDBConfig(): Promise<DBConfig> {
-  const db = getDB()
-  const configs = await db.collection('configs').find().toArray()
-  
-  configs.forEach((config) => {
-    dbConfig[config.key] = config.value
-  })
+    const db = getDB()
+    const configs = await db.collection('configs').find().toArray()
 
-  return dbConfig
+    configs.forEach((config) => {
+        dbConfig[config.key] = config.value
+    })
+
+    return dbConfig
 }
 
 export function getConfig(): AppConfig {
-  if (!appConfig) {
-    throw new Error('Config not loaded')
-  }
-  return appConfig
+    if (!appConfig) {
+        throw new Error('Config not loaded')
+    }
+    return appConfig
 }
 
 export function getJWTSecret(): string {
-  if (!appConfig) {
-    throw new Error('Config not loaded')
-  }
-  return appConfig.jwt_secret || 'default-secret'
+    if (!appConfig) {
+        throw new Error('Config not loaded')
+    }
+    return appConfig.jwt_secret || 'default-secret'
 }
 
 export function getPlugins(): PluginConfig[] {
-  if (!appConfig) return []
-  return appConfig.plugins || []
+    if (!appConfig) return []
+    return appConfig.plugins || []
 }
 
 export function getDBConfig(): DBConfig {
-  return dbConfig
+    return dbConfig
 }
 
-export function getDBConfigValue<T>(key: string, defaultValue : T): T {
-  return (dbConfig[key] as T) ?? defaultValue
+export function getDBConfigValue<T>(key: string, defaultValue: T): T {
+    return (dbConfig[key] as T) ?? defaultValue
 }
 
 export async function setDBConfig<T>(key: string, value: T): Promise<void> {
-  const db = getDB()
+    const db = getDB()
 
-  await db
-    .collection('configs')
-    .updateOne(
-      { key },
-      { $set: { key, value, updatedAt: new Date() } },
-      { upsert: true }
-    )
+    await db
+        .collection('configs')
+        .updateOne(
+            { key },
+            { $set: { key, value, updatedAt: new Date() } },
+            { upsert: true }
+        )
 
-  dbConfig[key] = value
+    dbConfig[key] = value
 }

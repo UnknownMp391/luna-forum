@@ -1,46 +1,46 @@
 export interface IdParams {
-  id: string
+    id: string
 }
 
 export interface IdAndPostIdParams {
-  id: string
-  postId: string
+    id: string
+    postId: string
 }
 
 export interface CreateTagBody {
-  name: string
-  parentId?: string
-  sortOrder?: number
+    name: string
+    parentId?: string
+    sortOrder?: number
 }
 
 export interface UpdateTagBody {
-  name?: string
-  sortOrder?: number
-  requireTag?: boolean
+    name?: string
+    sortOrder?: number
+    requireTag?: boolean
 }
 
 export interface SortTagBody {
-  sortOrder: number
+    sortOrder: number
 }
 
 export interface MoveTagBody {
-  newParentId: string | null
+    newParentId: string | null
 }
 
 export interface ModeratorBody {
-  userId: number
+    userId: number
 }
 
 export interface PostsQuery {
-  page?: number
-  limit?: number
+    page?: number
+    limit?: number
 }
 
 export interface DeletePostParams {
-  id: string
-  postId: string
+    id: string
+    postId: string
 }
 
 export interface Post {
-  tagId?: string
+    tagId?: string
 }

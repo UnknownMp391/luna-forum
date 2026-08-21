@@ -1,11 +1,11 @@
 {
-  "name": "luna-forum-plugin-root",
+  "name": "luna-forum-ui",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Luna Forum Default UI",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Luna Dev Team",
   "license": "AGPL-3.0-or-later"
 }
