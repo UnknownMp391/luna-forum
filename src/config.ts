@@ -22,18 +22,24 @@ let appConfig: AppConfig
 
 const dbConfig: DBConfig = {}
 
-export async function loadConfig(configPath: string = './config.json'): Promise<AppConfig> {
-    const fullPath = resolve(configPath)
+export async function loadConfig(defaultConfigPath: string = './config.json'): Promise<AppConfig> {
+    const configFromEnv = process.env.CONFIG
 
-    if (!existsSync(fullPath)) {
+    if (configFromEnv !== undefined) {
+      appConfig = JSON.parse(configFromEnv) as AppConfig
+    } else {
+      const fullPath = resolve(process.env.CONFIG_PATH ?? defaultConfigPath)
+
+      if (!existsSync(fullPath)) {
         throw new Error(`Config file not found: ${fullPath}`)
-    }
+      }
 
-    const fileContent = readFileSync(fullPath, 'utf-8')
-    appConfig = JSON.parse(fileContent) as AppConfig
+      const fileContent = readFileSync(fullPath, 'utf-8')
+      appConfig = JSON.parse(fileContent) as AppConfig
 
-    if (!appConfig.mongodb?.uri) {
+      if (!appConfig.mongodb?.uri) {
         throw new Error('MongoDB URI is required in config.json')
+      }
     }
 
     return appConfig
