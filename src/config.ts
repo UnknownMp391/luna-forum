@@ -8,6 +8,10 @@ export interface AppConfig {
     uri: string
     dbName: string
   }
+  site?: {
+    name: string
+    description: string
+  }
   jwt_secret: string
   plugins: PluginConfig[]
 }

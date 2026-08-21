@@ -1,7 +1,7 @@
 {
-  "name": "luna-forum-frontend",
+  "name": "luna-forum-ui",
   "version": "1.0.0",
-  "description": "Luna Forum Frontend",
+  "description": "Luna Forum Default UI",
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
