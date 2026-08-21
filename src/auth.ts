@@ -3,11 +3,15 @@ import { getDB } from './db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { RegisterBody, LoginBody } from './types.js'
-import type { FastifyInstance, FastifyRequest } from 'fastify'
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 
 const PRIV_REGISTER_ACCOUNT = 0
 const PRIV_LOGIN = 1
 const SALT_ROUNDS = 10
+const COOKIE_NAME = 'client_key'
+const TOKEN_EXPIRES = 7 * 24 * 60 * 60
+
+type RequestWithCookies = FastifyRequest & { cookies?: Record<string, string> }
 
 let jwtSecret: string | null = null
 
@@ -34,7 +38,7 @@ export function verifyToken(token: string): { uid: number } | null {
     }
 }
 
-export async function getCurrentUser(request: any): Promise<Record<string, unknown> | null> {
+export async function getCurrentUser(request: FastifyRequest): Promise<Record<string, unknown> | null> {
     const userId = getUserIdFromRequest(request);
     if (userId === 0) return null;
     const db = getDB();
@@ -56,22 +60,23 @@ export async function getCurrentUser(request: any): Promise<Record<string, unkno
     return safeUser;
 }
 
-function setAuthCookie(reply: any, token: string): void {
-    reply.setCookie('client_key', token, {
+function setAuthCookie(reply: FastifyReply, token: string): void {
+    reply.setCookie(COOKIE_NAME, token, {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
         path: '/',
-        maxAge: 7 * 24 * 60 * 60
+        maxAge: TOKEN_EXPIRES
     });
 }
 
-function clearAuthCookie(reply: any): void {
-    reply.clearCookie('client_key', { path: '/' });
+function clearAuthCookie(reply: FastifyReply): void {
+    reply.clearCookie(COOKIE_NAME, { path: '/' });
 }
 
-export function getUserIdFromRequest(request: any): number {
-    const cookieToken = request.cookies?.['client_key'];
+export function getUserIdFromRequest(request: FastifyRequest): number {
+    const req = request as RequestWithCookies;
+    const cookieToken = req.cookies?.[COOKIE_NAME];
     if (cookieToken) {
         const payload = verifyToken(cookieToken);
         if (payload) return payload.uid;
@@ -98,32 +103,21 @@ export function setupAuthRoutes(server: FastifyInstance): void {
     server.post<{ Body: RegisterBody }>('/api/v1/register', async (request, reply) => {
         const { username, password, email } = request.body
         const db = getDB()
-
         const canRegister = await privManager.hasPriv(0, PRIV_REGISTER_ACCOUNT)
         if (!canRegister) {
             return reply.code(403).send({ success: false, error: 'Registration not allowed' })
         }
-
         const existingUser = await db.collection('users').findOne({
             $or: [{ username }, { email }]
         })
         if (existingUser) {
             return reply.code(409).send({ success: false, error: 'Username or email already exists' })
         }
-
         const userCount = await db.collection('users').countDocuments({ uid: { $gt: 0 } })
         const maxUser = await db.collection('users').find().sort({ uid: -1 }).limit(1).toArray()
         const newUid = maxUser.length > 0 ? maxUser[0].uid + 1 : 1
-
-        let privValue: string
-        if (userCount === 0) {
-            privValue = '-1'
-        } else {
-            privValue = privManager.getDefaultPriv()
-        }
-
+        const privValue = userCount === 0 ? '-1' : privManager.getDefaultPriv()
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
-
         await db.collection('users').insertOne({
             uid: newUid,
             username,
@@ -133,32 +127,34 @@ export function setupAuthRoutes(server: FastifyInstance): void {
             banned: false,
             createdAt: new Date()
         })
-
         const token = signToken(newUid)
+        setAuthCookie(reply, token)
         return reply.code(201).send({ success: true, uid: newUid, username, token })
     })
 
     server.post<{ Body: LoginBody }>('/api/v1/login', async (request, reply) => {
         const { username, password } = request.body
         const db = getDB()
-
         const user = await db.collection('users').findOne({ username })
         if (!user) {
             return reply.code(401).send({ success: false, error: 'Invalid credentials' })
         }
-
-        const canLogin = await privManager.hasPriv(user.uid, PRIV_LOGIN)
-        if (!canLogin) {
-            return reply.code(403).send({ success: false, error: 'User cannot login' })
-        }
-
         const passwordMatch = await bcrypt.compare(password, user.password)
         if (!passwordMatch) {
             return reply.code(401).send({ success: false, error: 'Invalid credentials' })
         }
-
+        const canLogin = await privManager.hasPriv(user.uid, PRIV_LOGIN)
+        if (!canLogin) {
+            return reply.code(403).send({ success: false, error: 'User cannot login' })
+        }
         const token = signToken(user.uid)
+        setAuthCookie(reply, token)
         return reply.code(200).send({ success: true, token, user: { uid: user.uid, username: user.username } })
+    })
+
+    server.post('/api/v1/logout', async (_request: FastifyRequest, reply: FastifyReply) => {
+        clearAuthCookie(reply);
+        return { success: true };
     })
 }
 

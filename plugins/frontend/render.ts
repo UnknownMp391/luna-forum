@@ -5,6 +5,7 @@ import type { RenderData } from './types.js';
 import { t } from './i18n.js';
 import { getConfig } from '../../src/config.js';
 import { getCurrentUser } from '../../src/auth.js';
+import type { FastifyRequest } from 'fastify';
 
 interface FileSystemLoaderLike {
     searchPaths: string[];
@@ -16,7 +17,7 @@ const env = nunjucks.configure(templatesPath, { autoescape: true });
 
 let currentRequest: unknown = null;
 
-export function setRequest(request: unknown): void {
+export function setRequest(request: FastifyRequest): void {
     currentRequest = request;
 }
 
@@ -52,14 +53,15 @@ export async function renderPage(
     data: RenderData = {}
 ): Promise<string> {
     const site = getSiteInfo();
+    let user: Record<string, unknown> | null = null;
+    if (currentRequest) {
+        user = await getCurrentUser(currentRequest as FastifyRequest);
+    }
     const merged: Record<string, unknown> = {
         ...data,
         site,
-        user: null
+        user
     };
-    if (currentRequest) {
-        merged.user = await getCurrentUser(currentRequest);
-    }
     if (!merged.title) {
         merged.title = site.name;
     }
