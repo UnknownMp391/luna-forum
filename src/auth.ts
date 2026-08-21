@@ -34,13 +34,31 @@ export function verifyToken(token: string): { uid: number } | null {
     }
 }
 
-export function getUserIdFromRequest(request: FastifyRequest): number {
-    const authHeader = request.headers.authorization
-    if (!authHeader) return 0
+function setAuthCookie(reply: any, token: string): void {
+    reply.setCookie('client_key', token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60
+    });
+}
 
-    const token = authHeader.replace('Bearer ', '')
-    const payload = verifyToken(token)
-    return payload ? payload.uid : 0
+function clearAuthCookie(reply: any): void {
+    reply.clearCookie('client_key', { path: '/' });
+}
+
+export function getUserIdFromRequest(request: any): number {
+    const cookieToken = request.cookies?.['client_key'];
+    if (cookieToken) {
+        const payload = verifyToken(cookieToken);
+        if (payload) return payload.uid;
+    }
+    const authHeader = request.headers.authorization;
+    if (!authHeader) return 0;
+    const token = authHeader.replace('Bearer ', '');
+    const payload = verifyToken(token);
+    return payload ? payload.uid : 0;
 }
 
 export async function initGuestPriv(): Promise<void> {
