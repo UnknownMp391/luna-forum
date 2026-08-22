@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { RegisterBody, LoginBody } from './types.js'
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { request } from 'node:http'
 
 const PRIV_REGISTER_ACCOUNT = 0
 const PRIV_LOGIN = 1
@@ -18,12 +17,6 @@ let jwtSecret: string | null = null
 
 export function setJWTSecret(secret: string): void {
     jwtSecret = secret
-}
-
-function isFormRequest(request: FastifyRequest): boolean {
-  const headers = request.headers;
-  const contentType = headers['content-type'];
-  return typeof contentType === 'string' && contentType.includes('application/x-www-form-urlencoded');
 }
 
 export function registerAuthPrivs(): void {
@@ -136,7 +129,6 @@ export function setupAuthRoutes(server: FastifyInstance): void {
         })
         const token = signToken(newUid)
         setAuthCookie(reply, token)
-        if (isFormRequest(request)) return reply.redirect('/login');
         return reply.code(201).send({ success: true, uid: newUid, username, token })
     })
 
@@ -157,13 +149,11 @@ export function setupAuthRoutes(server: FastifyInstance): void {
         }
         const token = signToken(user.uid)
         setAuthCookie(reply, token)
-        if (isFormRequest(request)) return reply.redirect('/');
         return reply.code(200).send({ success: true, token, user: { uid: user.uid, username: user.username } })
     })
 
     server.post('/api/v1/logout', async (_request: FastifyRequest, reply: FastifyReply) => {
         clearAuthCookie(reply);
-        if (isFormRequest(_request)) return reply.redirect(_request.headers.referer ?? '/');
         return { success: true };
     })
 }

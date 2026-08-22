@@ -7,7 +7,6 @@ import { registerAuthPrivs, initGuestPriv, setupAuthRoutes, setJWTSecret } from 
 import Fastify, { FastifyInstance } from 'fastify'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { fastifyCookie } from '@fastify/cookie'
-import fastifyFormbody from '@fastify/formbody';
 
 export class Kernel {
   private server!: FastifyInstance
@@ -46,8 +45,6 @@ export class Kernel {
           }
         : true
     }).withTypeProvider<TypeBoxTypeProvider>()
-
-    this.server.register(fastifyFormbody);    
 
     this.server.register(fastifyCookie, {
       secret: config.jwt_secret,
