@@ -1,6 +1,7 @@
 import { Plugin, PluginContext, KernelAPI, PluginManifest } from './types.js'
 import { hookManager } from './hookmgr.js'
 import { getDB } from './db.js'
+import { pathToFileURL } from 'url';
 import { getDBConfigValue, setDBConfig } from './config.js'
 import { privManager } from './privmgr.js'
 import { getUserIdFromRequest } from './auth.js'
@@ -15,8 +16,8 @@ class PluginManager {
     private server!: FastifyInstance
 
     private pluginEntries = [
-      'index.js',
-      'index.ts'
+        'index.js',
+        'index.ts'
     ]
 
     setServer(server: FastifyInstance) {
@@ -90,24 +91,26 @@ class PluginManager {
     }
 
     async loadPlugin(manifest: PluginManifest) {
-      const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname,'../', manifest.main, e));
+        const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname, '../', manifest.main, e));
 
-      let path = '';
+        let path = '';
 
-      for (const element of tryPaths) {
-          try {
-              await promises.access(element, promises.constants.F_OK);
+        for (const element of tryPaths) {
+            try {
+                await promises.access(element, promises.constants.F_OK);
 
-              path = element;
-          }
-          catch { }
-      }
+                path = element;
+            }
+            catch { }
+        }
 
-      const mod = await import(path);
+        path = nodePath.join(process.cwd(), manifest.main);
 
-      const plugin = mod.default || mod;
+        const mod = await import(pathToFileURL(path).href);
 
-      await this.register(plugin);
+        const plugin = mod.default || mod;
+        
+        await this.register(plugin);
     }
 
     getPlugin(name: string): Plugin | undefined {
