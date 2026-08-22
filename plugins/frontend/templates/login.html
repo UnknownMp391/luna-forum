@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block ext_script %}{% endblock %}
+{% block page_content %}
+<div class="lf-card-center-wrapper">
+    <div class="lf-card lf-card-center">
+        <div class="lf-card-header">
+            <div class="lf-card-title">登录到 {{ site.name }}</div>
+            <div class="lf-card-subtitle">什么？没有帐户？<fluent-link href="/register">注册一个！</fluent-link></div>
+        </div>
+        <div class="lf-card-content">
+            <form method="POST" action="/api/v1/login" class="lf-form">
+                <fluent-text-input type="text" name="username" autofocus>用户名</fluent-text-input>
+                <fluent-text-input type="password" name="password">密码</fluent-text-input>
+                <fluent-button appearance="primary" type="submit">登录</fluent-button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

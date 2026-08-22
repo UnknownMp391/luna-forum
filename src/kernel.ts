@@ -28,12 +28,28 @@ export class Kernel {
 
     await loadDBConfig()
 
-    this.server = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>()
+    const isDev = process.env.NODE_ENV !== 'production'
+
+    this.server = Fastify({
+      logger: isDev
+        ? {
+            transport: {
+              target: 'pino-pretty',
+              options: {
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+                colorize: true,
+                singleLine: true
+              }
+            }
+          }
+        : true
+    }).withTypeProvider<TypeBoxTypeProvider>()
 
     this.server.register(fastifyCookie, {
-        secret: config.jwt_secret,
-        hook: 'onRequest',
-    });
+      secret: config.jwt_secret,
+      hook: 'onRequest'
+    })
 
     this.server.get('/api/v1/health', async () => {
       return { status: 'ok', plugins: Array.from(pluginManager['plugins'].keys()) }
@@ -62,8 +78,13 @@ export class Kernel {
 
     await hookManager.call('kernel:beforeStart')
 
+    this.server.log.info(`          Luna Forum`);
+
+    this.server.log.info(`================================`)
+
     await this.server.listen({ port: dbPort, host: '0.0.0.0' })
-    console.log(`Forum core running on port ${dbPort}`)
+    
+    this.server.log.info(`================================`)
 
     await hookManager.call('kernel:afterStart')
   }
