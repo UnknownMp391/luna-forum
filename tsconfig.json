@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "outDir": "./dist",
     "rootDir": ".",
     "strict": true,
@@ -14,9 +14,27 @@
   },
   "include": [
     "index.ts",
-    "src/**/*.ts",
-    "plugins/**/*.ts",
+    "src/**/*",
+    "plugins/**/*",
     "global.d.ts"
   ],
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".vercel",
+    "yarn.lock",
+    "tsconfig.json",
+    "README.md",
+    "package.json",
+    "config.example.json",
+    "config.json",
+    ".env.local",
+    ".gitignore",
+    "LICENSE",
+    "vercel.json",
+    ".editorconfig",
+    ".github",
+    "vercel.cfg.json",
+    "vercel.opt.json"
+  ]
 }

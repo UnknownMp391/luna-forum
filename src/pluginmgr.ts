@@ -5,12 +5,19 @@ import { getDBConfigValue, setDBConfig } from './config.js'
 import { privManager } from './privmgr.js'
 import { getUserIdFromRequest } from './auth.js'
 import { FastifyInstance } from 'fastify'
+import nodePath from 'path'
+import { promises } from 'fs'
 
 class PluginManager {
     private plugins: Map<string, Plugin> = new Map()
     private commands: Map<string, Function> = new Map()
     private kernelAPI!: KernelAPI
     private server!: FastifyInstance
+
+    private pluginEntries = [
+      'index.js',
+      'index.ts'
+    ]
 
     setServer(server: FastifyInstance) {
         this.server = server
@@ -83,11 +90,24 @@ class PluginManager {
     }
 
     async loadPlugin(manifest: PluginManifest) {
-        const mod = await import('../' + manifest.main)
+      const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname,'../', manifest.main, e));
 
-        const plugin: Plugin = mod.default || mod
+      let path = '';
 
-        await this.register(plugin)
+      for (const element of tryPaths) {
+          try {
+              await promises.access(element, promises.constants.F_OK);
+
+              path = element;
+          }
+          catch { }
+      }
+
+      const mod = await import(path);
+
+      const plugin = mod.default || mod;
+
+      await this.register(plugin);
     }
 
     getPlugin(name: string): Plugin | undefined {

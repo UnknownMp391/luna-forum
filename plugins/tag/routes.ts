@@ -1,7 +1,7 @@
 import { Db, ObjectId } from 'mongodb'
-import { KernelAPI } from '../../src/types'
+import { KernelAPI } from '../../src/types.js'
 import { FastifyInstance } from 'fastify'
-import { CreateTagBody, IdAndPostIdParams, DeletePostParams, UpdateTagBody, SortTagBody, MoveTagBody, ModeratorBody, IdParams, PostsQuery } from './types';
+import { CreateTagBody, IdAndPostIdParams, DeletePostParams, UpdateTagBody, SortTagBody, MoveTagBody, ModeratorBody, IdParams, PostsQuery } from './types.js';
 
 const TAG_MAGIC = 500
 const PRIV_TAG_CREATE = TAG_MAGIC + 0

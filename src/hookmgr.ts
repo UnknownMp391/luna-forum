@@ -1,4 +1,4 @@
-import { HookHandler } from './types'
+import { HookHandler } from './types.js'
 
 class HookManager {
     private hooks: Map<string, HookHandler[]> = new Map()
