@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
-import { KernelAPI } from '../../src/types'
+import { KernelAPI } from '../../src/types.js'
 import { FastifyInstance } from 'fastify'
-import { IdParams } from './types'
+import { IdParams } from './types.js'
 
 const POST_PINNED_MAGIC = 100
 const PRIV_POST_PIN = POST_PINNED_MAGIC + 0

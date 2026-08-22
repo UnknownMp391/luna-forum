@@ -1,5 +1,5 @@
 import { readFileSync, existsSync } from 'fs'
-import { resolve } from 'path'
+import path, { resolve } from 'path'
 import { getDB } from './db.js'
 import { PluginConfig } from './types.js'
 
@@ -28,7 +28,7 @@ export async function loadConfig(defaultConfigPath: string = './config.json'): P
     if (configFromEnv !== undefined) {
       appConfig = JSON.parse(configFromEnv) as AppConfig
     } else {
-      const fullPath = resolve(process.env.CONFIG_PATH ?? defaultConfigPath)
+      const fullPath = resolve(process.env.CONFIG_PATH ?? path.join(import.meta.dirname, '..', defaultConfigPath))
 
       if (!existsSync(fullPath)) {
         throw new Error(`Config file not found: ${fullPath}`)

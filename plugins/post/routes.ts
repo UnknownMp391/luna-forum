@@ -1,9 +1,9 @@
 import { Db, ObjectId } from 'mongodb';
-import { KernelAPI } from '../../src/types';
-import { Post, PostSchema } from './types';
+import { KernelAPI } from '../../src/types.js';
+import { Post, PostSchema } from './types.js';
 import { Static, StaticDecode, Type } from '@sinclair/typebox'
 import { FastifyInstance } from 'fastify';
-import { ErrorBase as ErrorBaseType, ErrorBaseSchema } from '../../src/schema';
+import { ErrorBase as ErrorBaseType, ErrorBaseSchema } from '../../src/schema.js';
 
 const POST_MAGIC = 2;
 const PRIV_POST_CREATE = POST_MAGIC + 0;
