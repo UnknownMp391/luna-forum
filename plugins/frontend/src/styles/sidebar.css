@@ -11,6 +11,19 @@
     --lf-sc: 64px;
 }
 
+@media (prefers-color-scheme: dark) {
+    :root {
+        --lf-p: #4cc2ff;
+        --lf-bg: #1b1a19;
+        --lf-s: rgba(32, 31, 30, .8);
+        --lf-t: #f3f2f1;
+        --lf-ts: #a19f9d;
+        --lf-b: rgba(50, 49, 48, .5);
+        --lf-h: rgba(59, 58, 57, .5);
+        --lf-al: rgba(0, 90, 158, .3);
+    }
+}
+
 .lf-sidebar iconify-icon {
     position: relative;
     font-size: 24px;
@@ -228,6 +241,7 @@ body {
     justify-content: center;
     font-weight: 600;
     flex-shrink: 0;
+    color: #323130;
 }
 
 .lf-user-info {
@@ -258,6 +272,7 @@ body {
     margin: 0 auto;
     opacity: 0;
     transition: opacity .3s;
+    color: #323130;
 }
 
 .lf-collapsed .lf-mini-avatar {
@@ -291,6 +306,7 @@ body {
     cursor: pointer;
     font-size: 20px;
     padding: 8px;
+    color: var(--lf-t);
 }
 
 .lf-title {
@@ -319,6 +335,14 @@ body {
 .lf-overlay.lf-show {
     opacity: 1;
     visibility: visible;
+}
+
+@media (prefers-color-scheme: dark) {
+    .lf-avatar,
+    .lf-mini-avatar {
+        background: #3b3a39;
+        color: #f3f2f1;
+    }
 }
 
 @media (max-width: 768px) {
