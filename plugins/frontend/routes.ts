@@ -31,8 +31,36 @@ export function setupFrontendRoutes(server: FastifyInstance): void {
         immutable: true,
         cacheControl: true
     });
-    // server.get('/dev/layout-preview', async (_request: FastifyRequest, reply: FastifyReply) => {
-    //     const html = await renderPage('layout.html', { pagename: 'Dev Layout Preview', posts: [] });
-    //     return reply.type('text/html').send(html);
-    // });
+    server.register(fastifyStatic, {
+        root: resolve(dirname(fileURLToPath(import.meta.url)), '../../node_modules/tslib'),
+        prefix: '/static/tslib/',
+        decorateReply: false,
+        maxAge: '30d',
+        immutable: true,
+        cacheControl: true
+    });
+    server.register(fastifyStatic, {
+        root: resolve(dirname(fileURLToPath(import.meta.url)), '../../node_modules/@microsoft/fast-element/dist'),
+        prefix: '/static/fastelement/',
+        decorateReply: false,
+        maxAge: '30d',
+        immutable: true,
+        cacheControl: true
+    });
+    server.register(fastifyStatic, {
+        root: resolve(dirname(fileURLToPath(import.meta.url)), '../../node_modules/@microsoft/fast-foundation/dist'),
+        prefix: '/static/fastfoundation/',
+        decorateReply: false,
+        maxAge: '30d',
+        immutable: true,
+        cacheControl: true
+    });
+    server.get('/dev/layout-preview', async (_request: FastifyRequest, reply: FastifyReply) => {
+        const html = await renderPage('layout.html', { pagename: 'Dev Layout Preview', posts: [] });
+        return reply.type('text/html').send(html);
+    });
+    server.get('/login', async (_request: FastifyRequest, reply: FastifyReply) => {
+        const html = await renderPage('login.html', { pagename: '登录', posts: [] });
+        return reply.type('text/html').send(html);
+    });
 }

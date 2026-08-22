@@ -37,7 +37,6 @@
                     <div class="lf-user-name">未登录</div>
                     <div class="lf-user-role"><fluent-link href="/login" tabindex="0">点此登录</fluent-link></div>
                     {% endif %}
-
                 </div>
             </div>
             <fluent-avatar data-color="neutral" class="lf-mini-avatar"></fluent-avatar>
@@ -46,7 +45,9 @@
     <!--main area-->
     <main class="lf-content-area">
         <header class="lf-topbar">
-            <button class="lf-menu-toggle" data-lf-drawer-menu="lf-sidebar"></button>
+            <button class="lf-menu-toggle" data-lf-drawer-menu="lf-sidebar">
+                <iconify-icon icon="fluent:line-horizontal-3-20-regular"></iconify-icon>
+            </button>
             <h1 class="lf-title" data-lf-drawer-title>{{ pagename }}</h1>
         </header>
         <div class="lf-content">

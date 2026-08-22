@@ -53,7 +53,7 @@ export interface User {
     uid: number
     username: string
     priv: number
-    avatar: string
+    avatar?: string
     banned: boolean
 }
 

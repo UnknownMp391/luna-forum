@@ -60,7 +60,9 @@ export async function renderPage(
     const merged: Record<string, unknown> = {
         ...data,
         site,
-        user
+        user,
+        bundlePath: '/static/dist/bundle.js',
+        stylePath: '/static/dist/bundle.css'
     };
     if (!merged.title) {
         merged.title = site.name;

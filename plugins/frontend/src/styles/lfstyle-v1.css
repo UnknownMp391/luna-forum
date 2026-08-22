@@ -1,0 +1,121 @@
+.lf-card {
+    background: var(--lf-s);
+    border: 1px solid var(--lf-b);
+    border-radius: 8px;
+    padding: 24px;
+    transition: box-shadow .2s, background .3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.lf-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.lf-card-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--lf-t);
+}
+
+.lf-card-subtitle {
+    font-size: 13px;
+    color: var(--lf-ts);
+    margin-top: 2px;
+}
+
+.lf-card-content {
+    font-size: 14px;
+    color: var(--lf-t);
+    line-height: 1.6;
+}
+
+.lf-card-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--lf-b);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.lf-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.lf-card-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--lf-p);
+    border-radius: 8px 8px 0 0;
+}
+
+.lf-card-interactive {
+    cursor: pointer;
+}
+
+.lf-card-center-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    top: 0;
+    
+    width: 100%;
+    min-height: 100%;
+}
+
+.lf-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.lf-form fluent-text-input {
+    width: 100%;
+}
+
+.lf-form fluent-button {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.lf-card-center {
+    width: 100%;
+    max-width: 420px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 32px;
+}
+
+.lf-card-center .lf-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.lf-card-center .lf-card-content {
+    width: 100%;
+}
+
+.lf-card-center-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+}
