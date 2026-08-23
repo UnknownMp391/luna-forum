@@ -264,6 +264,13 @@
   dependencies:
     fast-json-stringify "^6.0.0"
 
+"@fastify/flash@^6.0.5":
+  version "6.0.5"
+  resolved "https://registry.npmmirror.com/@fastify/flash/-/flash-6.0.5.tgz#b4c267722380142ed874cf91af2a99b40b074dd8"
+  integrity sha512-DaJcL7acz6T3b7SUHAaegK4RelSbHlJzsFAWAPx5BEft/NSzg+eaNU0Fw5i0EkEAEtOMCV2gcXYWr4flm5r+mA==
+  dependencies:
+    fastify-plugin "^6.0.0"
+
 "@fastify/formbody@^9.0.0":
   version "9.0.0"
   resolved "https://registry.npmmirror.com/@fastify/formbody/-/formbody-9.0.0.tgz#9c9245f8ae9e536450e0f0767d75ff07427e9578"
@@ -302,6 +309,14 @@
     fast-decode-uri-component "^1.0.1"
     http-errors "^2.0.0"
     mime "^3"
+
+"@fastify/session@^11.1.2":
+  version "11.1.2"
+  resolved "https://registry.npmmirror.com/@fastify/session/-/session-11.1.2.tgz#0adb90c9a4972c1d0aa188f337f2e05a94cc3306"
+  integrity sha512-Hh2MjeVSQIqHumfigTtVPbyUUscPWlkUM3Xf7nII9bS82HYdCl3phMXF1pEHwNlQZRpKD4MWa3/t0TjGrJT6sw==
+  dependencies:
+    fastify-plugin "^6.0.0"
+    safe-stable-stringify "^2.4.3"
 
 "@fastify/static@^10.1.3":
   version "10.1.3"
@@ -2667,7 +2682,7 @@ safe-regex2@^5.0.0:
   dependencies:
     ret "~0.5.0"
 
-safe-stable-stringify@^2.3.1:
+safe-stable-stringify@^2.3.1, safe-stable-stringify@^2.4.3:
   version "2.5.0"
   resolved "https://registry.npmmirror.com/safe-stable-stringify/-/safe-stable-stringify-2.5.0.tgz"
   integrity sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==

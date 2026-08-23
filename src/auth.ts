@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { RegisterBody, LoginBody } from './types.js'
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
-import { request } from 'node:http'
 
 const PRIV_REGISTER_ACCOUNT = 0
 const PRIV_LOGIN = 1
@@ -21,9 +20,9 @@ export function setJWTSecret(secret: string): void {
 }
 
 function isFormRequest(request: FastifyRequest): boolean {
-  const headers = request.headers;
-  const contentType = headers['content-type'];
-  return typeof contentType === 'string' && contentType.includes('application/x-www-form-urlencoded');
+    const headers = request.headers;
+    const contentType = headers['content-type'];
+    return typeof contentType === 'string' && contentType.includes('application/x-www-form-urlencoded');
 }
 
 export function registerAuthPrivs(): void {
@@ -112,12 +111,20 @@ export function setupAuthRoutes(server: FastifyInstance): void {
         const db = getDB()
         const canRegister = await privManager.hasPriv(0, PRIV_REGISTER_ACCOUNT)
         if (!canRegister) {
+            if (isFormRequest(request)) {
+                request.flash('error', '您没有权限注册账户');
+                return reply.redirect('/register');
+            }
             return reply.code(403).send({ success: false, error: 'Registration not allowed' })
         }
         const existingUser = await db.collection('users').findOne({
             $or: [{ username }, { email }]
         })
         if (existingUser) {
+            if (isFormRequest(request)) {
+                request.flash('error', '用户名或邮箱已存在')
+                return reply.redirect('/register');
+            }
             return reply.code(409).send({ success: false, error: 'Username or email already exists' })
         }
         const userCount = await db.collection('users').countDocuments({ uid: { $gt: 0 } })
@@ -141,25 +148,40 @@ export function setupAuthRoutes(server: FastifyInstance): void {
     })
 
     server.post<{ Body: LoginBody }>('/api/v1/login', async (request, reply) => {
-        const { username, password } = request.body
-        const db = getDB()
-        const user = await db.collection('users').findOne({ username })
+        const { username, password } = request.body;
+        const db = getDB();
+        const user = await db.collection('users').findOne({ username });
         if (!user) {
-            return reply.code(401).send({ success: false, error: 'Invalid credentials' })
+            if (isFormRequest(request)) {
+                request.flash('error', '用户名或密码错误');
+                return reply.redirect('/login');
+            }
+            return reply.code(401).send({ success: false, error: 'Invalid credentials' });
         }
-        const passwordMatch = await bcrypt.compare(password, user.password)
+        const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) {
-            return reply.code(401).send({ success: false, error: 'Invalid credentials' })
+            if (isFormRequest(request)) {
+                request.flash('error', '用户名或密码错误');
+                return reply.redirect('/login');
+            }
+            return reply.code(401).send({ success: false, error: 'Invalid credentials' });
         }
-        const canLogin = await privManager.hasPriv(user.uid, PRIV_LOGIN)
+        const canLogin = await privManager.hasPriv(user.uid, PRIV_LOGIN);
         if (!canLogin) {
-            return reply.code(403).send({ success: false, error: 'User cannot login' })
+            if (isFormRequest(request)) {
+                request.flash('error', '用户无法登录');
+                return reply.redirect('/login');
+            }
+            return reply.code(403).send({ success: false, error: 'User cannot login' });
         }
-        const token = signToken(user.uid)
-        setAuthCookie(reply, token)
-        if (isFormRequest(request)) return reply.redirect('/');
-        return reply.code(200).send({ success: true, token, user: { uid: user.uid, username: user.username } })
-    })
+        const token = signToken(user.uid);
+        setAuthCookie(reply, token);
+        if (isFormRequest(request)) {
+            request.flash('success', '登录成功');
+            return reply.redirect('/');
+        }
+        return reply.code(200).send({ success: true, token, user: { uid: user.uid, username: user.username } });
+    });
 
     server.post('/api/v1/logout', async (_request: FastifyRequest, reply: FastifyReply) => {
         clearAuthCookie(reply);

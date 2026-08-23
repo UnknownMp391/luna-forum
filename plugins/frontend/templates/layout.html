@@ -29,7 +29,7 @@
         </nav>
         <div class="lf-footer">
             <div class="lf-user">
-                <fluent-avatar data-color="neutral" class="lf-avatar" {% if user and user.avatar %} src="{{ user.avatar }}" {% else %} initials="{{ user.username[0]|upper if user else '?' }}" {% endif %}></fluent-avatar>
+                <fluent-avatar data-color="neutral" class="lf-avatar" {% if user and user.avatar %} src="{{ user.avatar }}" {% else %} initials="{{ user.username[0]|upper if user else '' }}" {% endif %}></fluent-avatar>
                 <div class="lf-user-info">
                     {% if user %}
                     <div class="lf-user-row">
@@ -52,7 +52,7 @@
                     {% endif %}
                 </div>
             </div>
-            <fluent-avatar data-color="neutral" class="lf-mini-avatar" {% if user and user.avatar %} src="{{ user.avatar }}" {% else %} initials="{{ user.username[0]|upper if user else '?' }}" {% endif %}></fluent-avatar>
+            <fluent-avatar data-color="neutral" class="lf-mini-avatar" {% if user and user.avatar %} src="{{ user.avatar }}" {% else %} initials="{{ user.username[0]|upper if user else '' }}" {% endif %}></fluent-avatar>
         </div>
     </aside>
     <!--main area-->
