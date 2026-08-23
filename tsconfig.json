@@ -16,7 +16,8 @@
     "index.ts",
     "src/**/*",
     "plugins/**/*",
-    "global.d.ts"
+    "global.d.ts",
+    "plugins/**/**/**/*"
   ],
   "exclude": [
     "node_modules",

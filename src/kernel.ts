@@ -8,103 +8,112 @@ import Fastify, { FastifyInstance } from 'fastify'
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { fastifyCookie } from '@fastify/cookie'
 import fastifyFormbody from '@fastify/formbody';
+import fastifyFlash from '@fastify/flash'
+import fastifySession from '@fastify/session'
 
 export class Kernel {
-  private server!: FastifyInstance
+    private server!: FastifyInstance
 
-  private started: boolean = false
+    private started: boolean = false
 
-  async boot(configPath?: string) {
-    const config = await loadConfig(configPath)
+    async boot(configPath?: string) {
+        const config = await loadConfig(configPath)
 
-    setJWTSecret(config.jwt_secret || 'default-secret')
+        setJWTSecret(config.jwt_secret || 'default-secret')
 
-    await connect(config.mongodb.uri, config.mongodb.dbName || 'forum')
+        await connect(config.mongodb.uri, config.mongodb.dbName || 'forum')
 
-    await privManager.initGuestUser()
+        await privManager.initGuestUser()
 
-    registerAuthPrivs()
+        registerAuthPrivs()
 
-    await initGuestPriv()
+        await initGuestPriv()
 
-    await loadDBConfig()
+        await loadDBConfig()
 
-    const isDev = process.env.NODE_ENV !== 'production'
+        const isDev = process.env.NODE_ENV !== 'production'
 
-    this.server = Fastify({
-      logger: isDev
-        ? {
-            transport: {
-              target: 'pino-pretty',
-              options: {
-                translateTime: 'HH:MM:ss Z',
-                ignore: 'pid,hostname',
-                colorize: true,
-                singleLine: true
-              }
-            }
-          }
-        : true
-    }).withTypeProvider<TypeBoxTypeProvider>()
+        this.server = Fastify({
+            logger: isDev
+                ? {
+                    transport: {
+                        target: 'pino-pretty',
+                        options: {
+                            translateTime: 'HH:MM:ss Z',
+                            ignore: 'pid,hostname',
+                            colorize: true,
+                            singleLine: true
+                        }
+                    }
+                }
+                : true
+        }).withTypeProvider<TypeBoxTypeProvider>()
 
-    this.server.register(fastifyFormbody);    
+        this.server.register(fastifyFormbody);
 
-    this.server.register(fastifyCookie, {
-      secret: config.jwt_secret,
-      hook: 'onRequest'
-    })
+        this.server.register(fastifyCookie, {
+            secret: config.jwt_secret,
+            hook: 'onRequest'
+        })
 
-    this.server.get('/api/v1/health', async () => {
-      return { status: 'ok', plugins: Array.from(pluginManager['plugins'].keys()) }
-    })
+        this.server.register(fastifySession, {
+            secret: config.jwt_secret,
+            cookie: { secure: false }
+        });
 
-    setupAuthRoutes(this.server)
+        this.server.register(fastifyFlash);
+        
+        this.server.get('/api/v1/health', async () => {
+            return { status: 'ok', plugins: Array.from(pluginManager['plugins'].keys()) }
+        })
 
-    await hookManager.call('kernel:beforeBoot')
-    this.started = true
-    await hookManager.call('kernel:afterBoot')
+        setupAuthRoutes(this.server)
 
-    return config
-  }
+        await hookManager.call('kernel:beforeBoot')
+        this.started = true
+        await hookManager.call('kernel:afterBoot')
 
-  async start(port?: number) {
-    if (!this.started) throw new Error('Kernel not booted')
-
-    const dbPort = port || await (async () => {
-      try {
-        const { getDBConfigValue } = await import('./config.js')
-        return getDBConfigValue('server.port', 3000)
-      } catch {
-        return 3000
-      }
-    })()
-
-    await hookManager.call('kernel:beforeStart')
-
-    this.server.log.info(`          Luna Forum`);
-
-    this.server.log.info(`================================`)
-
-    await this.server.listen({ port: dbPort, host: '0.0.0.0' })
-    
-    this.server.log.info(`================================`)
-
-    await hookManager.call('kernel:afterStart')
-  }
-
-  async stop() {
-    await hookManager.call('kernel:beforeStop')
-
-    if (this.server) {
-      await this.server.close()
+        return config
     }
-    await disconnect()
 
-    await hookManager.call('kernel:afterStop')
-    this.started = false
-  }
+    async start(port?: number) {
+        if (!this.started) throw new Error('Kernel not booted')
 
-  getServer() {
-    return this.server
-  }
+        const dbPort = port || await (async () => {
+            try {
+                const { getDBConfigValue } = await import('./config.js')
+                return getDBConfigValue('server.port', 3000)
+            } catch {
+                return 3000
+            }
+        })()
+
+        await hookManager.call('kernel:beforeStart')
+
+        this.server.log.info(`          Luna Forum`);
+
+        this.server.log.info(`================================`)
+
+        await this.server.listen({ port: dbPort, host: '0.0.0.0' })
+
+        this.server.log.info(`================================`)
+
+        await hookManager.call('kernel:afterStart')
+    }
+
+    async stop() {
+        await hookManager.call('kernel:beforeStop')
+
+        if (this.server) {
+            await this.server.close()
+        }
+        await disconnect()
+
+        await hookManager.call('kernel:afterStop')
+        this.started = false
+    }
+
+    getServer() {
+        return this.server
+    }
 }

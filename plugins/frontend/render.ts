@@ -4,8 +4,9 @@ import { fileURLToPath } from 'url';
 import type { RenderData } from './types.js';
 import { t } from './i18n.js';
 import { getConfig } from '../../src/config.js';
-import { getCurrentUser } from '../../src/auth.js';
+import { getCurrentUser, getUserIdFromRequest } from '../../src/auth.js';
 import type { FastifyRequest } from 'fastify';
+import { privManager } from '../../src/privmgr.js';
 
 interface FileSystemLoaderLike {
     searchPaths: string[];
@@ -53,16 +54,18 @@ export async function renderPage(
     data: RenderData = {}
 ): Promise<string> {
     const site = getSiteInfo();
-    let user: Record<string, unknown> | null = null;
+    let user: Record<string, unknown> | null = null, userId = 0;
     if (currentRequest) {
         user = await getCurrentUser(currentRequest as FastifyRequest);
+        userId = getUserIdFromRequest(currentRequest as FastifyRequest);
     }
     const merged: Record<string, unknown> = {
         ...data,
         site,
         user,
         bundlePath: '/static/dist/bundle.js',
-        stylePath: '/static/dist/bundle.css'
+        stylePath: '/static/dist/bundle.css',
+        hasPriv: (privBit: number) => privManager.hasPriv(userId, privBit)
     };
     if (!merged.title) {
         merged.title = site.name;
