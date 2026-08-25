@@ -19,7 +19,7 @@ export class Kernel {
     async boot(configPath?: string) {
         const config = await loadConfig(configPath)
 
-        setJWTSecret(config.jwt_secret || 'default-secret')
+        setJWTSecret(config.jwt_secret)
 
         await connect(config.mongodb.uri, config.mongodb.dbName || 'forum')
 

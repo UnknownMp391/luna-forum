@@ -67,7 +67,10 @@ export function getJWTSecret(): string {
     if (!appConfig) {
         throw new Error('Config not loaded')
     }
-    return appConfig.jwt_secret || 'default-secret'
+    if (!appConfig.jwt_secret) {
+        throw new Error('jwt_secret must be configured in config.json or CONFIG environment variable')
+    }
+    return appConfig.jwt_secret
 }
 
 export function getPlugins(): PluginConfig[] {
