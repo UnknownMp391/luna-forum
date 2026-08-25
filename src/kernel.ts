@@ -1,7 +1,7 @@
 import { connect, disconnect } from './db.js'
 import { pluginManager } from './pluginmgr.js'
 import { hookManager } from './hookmgr.js'
-import { loadConfig, loadDBConfig } from './config.js'
+import { loadConfig, loadDBConfig, getSessionSecret } from './config.js'
 import { privManager } from './privmgr.js'
 import { registerAuthPrivs, initGuestPriv, setupAuthRoutes, setJWTSecret } from './auth.js'
 import Fastify, { FastifyInstance } from 'fastify'
@@ -19,7 +19,7 @@ export class Kernel {
     async boot(configPath?: string) {
         const config = await loadConfig(configPath)
 
-        setJWTSecret(config.jwt_secret || 'default-secret')
+        setJWTSecret(config.jwt_secret)
 
         await connect(config.mongodb.uri, config.mongodb.dbName || 'forum')
 
@@ -56,15 +56,17 @@ export class Kernel {
             hook: 'onRequest'
         })
 
+        const sessionSecret = getSessionSecret()
+
         this.server.register(fastifySession, {
-            secret: config.jwt_secret,
-            cookie: { secure: false }
+            secret: sessionSecret,
+            cookie: { secure: process.env.NODE_ENV === 'production' }
         });
 
         this.server.register(fastifyFlash);
         
         this.server.get('/api/v1/health', async () => {
-            return { status: 'ok', plugins: Array.from(pluginManager['plugins'].keys()) }
+            return { status: 'ok', plugins: pluginManager.getPluginNames() }
         })
 
         setupAuthRoutes(this.server)
@@ -88,13 +90,22 @@ export class Kernel {
             }
         })()
 
+        const host = await (async () => {
+            try {
+                const { getDBConfigValue } = await import('./config.js')
+                return getDBConfigValue('server.host', '0.0.0.0') as string
+            } catch {
+                return '0.0.0.0'
+            }
+        })()
+
         await hookManager.call('kernel:beforeStart')
 
         this.server.log.info(`          Luna Forum`);
 
         this.server.log.info(`================================`)
 
-        await this.server.listen({ port: dbPort, host: '0.0.0.0' })
+        await this.server.listen({ port: dbPort, host })
 
         this.server.log.info(`================================`)
 

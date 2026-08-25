@@ -91,20 +91,20 @@ class PluginManager {
     }
 
     async loadPlugin(manifest: PluginManifest) {
+        // 通过文件存在性检查寻找实际的入口文件（index.js / index.ts）
         const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname, '../', manifest.main, e));
 
         let path = '';
-
         for (const element of tryPaths) {
             try {
                 await promises.access(element, promises.constants.F_OK);
-
                 path = element;
-            }
-            catch { }
+            } catch { }
         }
 
-        path = nodePath.join(process.cwd(), manifest.main);
+        if (!path) {
+            throw new Error(`Plugin entry file not found: ${manifest.main}`);
+        }
 
         const mod = await import(pathToFileURL(path).href);
 
@@ -115,6 +115,11 @@ class PluginManager {
 
     getPlugin(name: string): Plugin | undefined {
         return this.plugins.get(name)
+    }
+
+    /** 返回所有已注册插件的名称列表 */
+    getPluginNames(): string[] {
+        return Array.from(this.plugins.keys())
     }
 }
 export const pluginManager = new PluginManager()

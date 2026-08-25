@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'fs'
 import path, { resolve } from 'path'
+import { createHash } from 'crypto'
 import { getDB } from './db.js'
 import { PluginConfig } from './types.js'
 
@@ -13,6 +14,7 @@ export interface AppConfig {
         description: string
     }
     jwt_secret: string
+    session_secret?: string
     plugins: PluginConfig[]
 }
 
@@ -26,7 +28,11 @@ export async function loadConfig(defaultConfigPath: string = './config.json'): P
     const configFromEnv = process.env.CONFIG
 
     if (configFromEnv !== undefined) {
-      appConfig = JSON.parse(configFromEnv) as AppConfig
+      try {
+          appConfig = JSON.parse(configFromEnv) as AppConfig
+      } catch (e) {
+          throw new Error(`CONFIG 环境变量包含无效的 JSON: ${e instanceof Error ? e.message : String(e)}`)
+      }
     } else {
       const fullPath = resolve(process.env.CONFIG_PATH ?? path.join(import.meta.dirname, '..', defaultConfigPath))
 
@@ -35,7 +41,11 @@ export async function loadConfig(defaultConfigPath: string = './config.json'): P
       }
 
       const fileContent = readFileSync(fullPath, 'utf-8')
-      appConfig = JSON.parse(fileContent) as AppConfig
+      try {
+          appConfig = JSON.parse(fileContent) as AppConfig
+      } catch (e) {
+          throw new Error(`配置文件解析失败 (${fullPath}): ${e instanceof Error ? e.message : String(e)}`)
+      }
 
       if (!appConfig.mongodb?.uri) {
         throw new Error('MongoDB URI is required in config.json')
@@ -67,7 +77,17 @@ export function getJWTSecret(): string {
     if (!appConfig) {
         throw new Error('Config not loaded')
     }
-    return appConfig.jwt_secret || 'default-secret'
+    if (!appConfig.jwt_secret) {
+        throw new Error('jwt_secret must be configured in config.json or CONFIG environment variable')
+    }
+    return appConfig.jwt_secret
+}
+
+/** 获取 session 密钥：优先使用独立配置，否则从 jwt_secret 派生以隔离用途 */
+export function getSessionSecret(): string {
+    if (appConfig?.session_secret) return appConfig.session_secret
+    // 通过 HMAC-SHA256 从 jwt_secret 派生独立密钥，避免与 JWT 密钥混用
+    return createHash('sha256').update(appConfig!.jwt_secret + ':session-secret-derivation').digest('hex')
 }
 
 export function getPlugins(): PluginConfig[] {

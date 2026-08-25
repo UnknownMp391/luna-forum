@@ -57,8 +57,13 @@ export async function getCurrentUser(request: FastifyRequest): Promise<Record<st
     for (const [key, value] of Object.entries(user)) {
         if (value instanceof Date) {
             safeUser[key] = value.toISOString();
-        } else if (value && typeof value === 'object' && 'toString' in value) {
+        } else if (value instanceof Buffer) {
+            safeUser[key] = value.toString('hex');
+        } else if (value && typeof value === 'object' && '_bsontype' in value) {
+            // MongoDB BSON 类型（ObjectId 等），转为字符串表示
             safeUser[key] = String(value);
+        } else if (Array.isArray(value)) {
+            safeUser[key] = value.map(v => v instanceof Date ? v.toISOString() : v);
         } else {
             safeUser[key] = value;
         }
@@ -69,7 +74,7 @@ export async function getCurrentUser(request: FastifyRequest): Promise<Record<st
 function setAuthCookie(reply: FastifyReply, token: string): void {
     reply.setCookie(COOKIE_NAME, token, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
         maxAge: TOKEN_EXPIRES
@@ -97,12 +102,14 @@ export function getUserIdFromRequest(request: FastifyRequest): number {
 export async function initGuestPriv(): Promise<void> {
     const db = getDB()
     const guest = await db.collection('users').findOne({ uid: 0 })
-    const guestPriv = BigInt(guest ? String(guest.priv) : '0')
-    const registerPriv = guestPriv | (1n << BigInt(PRIV_REGISTER_ACCOUNT))
-    await db.collection('users').updateOne(
-        { uid: 0 },
-        { $set: { priv: registerPriv.toString() } }
-    )
+    // 仅在 guest 不存在或权限为初始值时设置 register 权限，避免每次启动覆盖管理员修改
+    if (!guest || String(guest.priv) === '0') {
+        const registerPriv = BigInt(1) << BigInt(PRIV_REGISTER_ACCOUNT)
+        await db.collection('users').updateOne(
+            { uid: 0 },
+            { $set: { priv: registerPriv.toString() } }
+        )
+    }
 }
 
 export function setupAuthRoutes(server: FastifyInstance): void {
@@ -143,7 +150,7 @@ export function setupAuthRoutes(server: FastifyInstance): void {
         })
         const token = signToken(newUid)
         setAuthCookie(reply, token)
-        if (isFormRequest(request)) return reply.redirect('/login');
+        if (isFormRequest(request)) return reply.redirect('/');
         return reply.code(201).send({ success: true, uid: newUid, username, token })
     })
 
