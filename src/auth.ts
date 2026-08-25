@@ -143,7 +143,7 @@ export function setupAuthRoutes(server: FastifyInstance): void {
         })
         const token = signToken(newUid)
         setAuthCookie(reply, token)
-        if (isFormRequest(request)) return reply.redirect('/login');
+        if (isFormRequest(request)) return reply.redirect('/');
         return reply.code(201).send({ success: true, uid: newUid, username, token })
     })
 
