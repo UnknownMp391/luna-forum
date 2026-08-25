@@ -7,18 +7,12 @@ import { privManager } from './privmgr.js'
 import { getUserIdFromRequest } from './auth.js'
 import { FastifyInstance } from 'fastify'
 import nodePath from 'path'
-import { promises } from 'fs'
 
 class PluginManager {
     private plugins: Map<string, Plugin> = new Map()
     private commands: Map<string, Function> = new Map()
     private kernelAPI!: KernelAPI
     private server!: FastifyInstance
-
-    private pluginEntries = [
-        'index.js',
-        'index.ts'
-    ]
 
     setServer(server: FastifyInstance) {
         this.server = server
@@ -91,22 +85,11 @@ class PluginManager {
     }
 
     async loadPlugin(manifest: PluginManifest) {
-        const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname, '../', manifest.main, e));
+        // 相对于项目根目录解析插件路径（import.meta.dirname 是 src/，向上两级到项目根）
+        const projectRoot = nodePath.join(import.meta.dirname, '..');
+        const pluginPath = nodePath.resolve(projectRoot, manifest.main);
 
-        let path = '';
-
-        for (const element of tryPaths) {
-            try {
-                await promises.access(element, promises.constants.F_OK);
-
-                path = element;
-            }
-            catch { }
-        }
-
-        path = nodePath.join(process.cwd(), manifest.main);
-
-        const mod = await import(pathToFileURL(path).href);
+        const mod = await import(pathToFileURL(pluginPath).href);
 
         const plugin = mod.default || mod;
         
