@@ -102,12 +102,14 @@ export function getUserIdFromRequest(request: FastifyRequest): number {
 export async function initGuestPriv(): Promise<void> {
     const db = getDB()
     const guest = await db.collection('users').findOne({ uid: 0 })
-    const guestPriv = BigInt(guest ? String(guest.priv) : '0')
-    const registerPriv = guestPriv | (1n << BigInt(PRIV_REGISTER_ACCOUNT))
-    await db.collection('users').updateOne(
-        { uid: 0 },
-        { $set: { priv: registerPriv.toString() } }
-    )
+    // 仅在 guest 不存在或权限为初始值时设置 register 权限，避免每次启动覆盖管理员修改
+    if (!guest || String(guest.priv) === '0') {
+        const registerPriv = BigInt(1) << BigInt(PRIV_REGISTER_ACCOUNT)
+        await db.collection('users').updateOne(
+            { uid: 0 },
+            { $set: { priv: registerPriv.toString() } }
+        )
+    }
 }
 
 export function setupAuthRoutes(server: FastifyInstance): void {
