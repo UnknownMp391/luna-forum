@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'fs'
 import path, { resolve } from 'path'
+import { createHash } from 'crypto'
 import { getDB } from './db.js'
 import { PluginConfig } from './types.js'
 
@@ -13,6 +14,7 @@ export interface AppConfig {
         description: string
     }
     jwt_secret: string
+    session_secret?: string
     plugins: PluginConfig[]
 }
 
@@ -71,6 +73,13 @@ export function getJWTSecret(): string {
         throw new Error('jwt_secret must be configured in config.json or CONFIG environment variable')
     }
     return appConfig.jwt_secret
+}
+
+/** 获取 session 密钥：优先使用独立配置，否则从 jwt_secret 派生以隔离用途 */
+export function getSessionSecret(): string {
+    if (appConfig?.session_secret) return appConfig.session_secret
+    // 通过 HMAC-SHA256 从 jwt_secret 派生独立密钥，避免与 JWT 密钥混用
+    return createHash('sha256').update(appConfig!.jwt_secret + ':session-secret-derivation').digest('hex')
 }
 
 export function getPlugins(): PluginConfig[] {

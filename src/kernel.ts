@@ -1,7 +1,7 @@
 import { connect, disconnect } from './db.js'
 import { pluginManager } from './pluginmgr.js'
 import { hookManager } from './hookmgr.js'
-import { loadConfig, loadDBConfig } from './config.js'
+import { loadConfig, loadDBConfig, getSessionSecret } from './config.js'
 import { privManager } from './privmgr.js'
 import { registerAuthPrivs, initGuestPriv, setupAuthRoutes, setJWTSecret } from './auth.js'
 import Fastify, { FastifyInstance } from 'fastify'
@@ -56,9 +56,11 @@ export class Kernel {
             hook: 'onRequest'
         })
 
+        const sessionSecret = getSessionSecret()
+
         this.server.register(fastifySession, {
-            secret: config.jwt_secret,
-            cookie: { secure: false }
+            secret: sessionSecret,
+            cookie: { secure: process.env.NODE_ENV === 'production' }
         });
 
         this.server.register(fastifyFlash);
