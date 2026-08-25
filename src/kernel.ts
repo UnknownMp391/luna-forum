@@ -90,13 +90,22 @@ export class Kernel {
             }
         })()
 
+        const host = await (async () => {
+            try {
+                const { getDBConfigValue } = await import('./config.js')
+                return getDBConfigValue('server.host', '0.0.0.0') as string
+            } catch {
+                return '0.0.0.0'
+            }
+        })()
+
         await hookManager.call('kernel:beforeStart')
 
         this.server.log.info(`          Luna Forum`);
 
         this.server.log.info(`================================`)
 
-        await this.server.listen({ port: dbPort, host: '0.0.0.0' })
+        await this.server.listen({ port: dbPort, host })
 
         this.server.log.info(`================================`)
 
