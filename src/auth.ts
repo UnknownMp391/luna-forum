@@ -69,7 +69,7 @@ export async function getCurrentUser(request: FastifyRequest): Promise<Record<st
 function setAuthCookie(reply: FastifyReply, token: string): void {
     reply.setCookie(COOKIE_NAME, token, {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
         maxAge: TOKEN_EXPIRES
