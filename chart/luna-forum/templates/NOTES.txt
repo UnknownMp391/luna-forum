@@ -1,0 +1,18 @@
+感谢部署 Luna Forum！
+
+1. 应用可通过以下方式访问：
+{{- if .Values.ingress.enabled }}
+
+   Ingress 已启用：http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}
+{{- else }}
+
+   kubectl port-forward svc/{{ include "luna-forum.fullname" . }} 3000:{{ .Values.service.port }}
+   然后访问 http://localhost:3000
+{{- end }}
+
+2. 健康检查端点：/api/v1/health
+
+3. 注意事项：
+   - 请确认 config.mongodb.uri 指向集群内可达的 MongoDB 实例。
+   - 应用使用内存 session 存储，当前仅支持单副本（replicaCount=1）。
+   - 首位注册的用户将自动获得管理员权限（priv=-1），请尽快注册。

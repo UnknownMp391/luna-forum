@@ -1,0 +1,16 @@
+# 版本控制与本地工件（dist 在容器内重新构建）
+.git/
+dist/
+.vercel/
+
+# 依赖
+node_modules/
+
+# 敏感信息与本地配置——绝不进入构建上下文/镜像
+config.json
+.env*
+*.log
+
+# 包管理器遗留文件
+yarn.lock
+package-lock.json

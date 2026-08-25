@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "luna-forum.fullname" . }}
+  labels:
+    {{- include "luna-forum.labels" . | nindent 4 }}
+spec:
+  # 应用使用内存 session 存储，水平扩容会破坏登录态；扩容前需先外置 session 存储
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "luna-forum.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # 配置（Secret 内容）变更时触发滚动更新
+        checksum/config: {{ include "luna-forum.configJson" . | sha256sum }}
+      labels:
+        {{- include "luna-forum.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: luna-forum
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "luna-forum.configSecretName" . }}
+                  key: CONFIG
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

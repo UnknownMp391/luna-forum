@@ -1,0 +1,80 @@
+# Luna Forum Helm Chart 默认值
+# 部署前必须设置：
+#   --set config.mongodb.uri=...  --set config.jwt_secret=...
+
+replicaCount: 1
+
+image:
+  repository: quay.io/unknownmp/luna-forum
+  tag: dev.1
+  pullPolicy: IfNotPresent
+
+# 私有仓库拉取凭证（quay.io 该仓库目前为公开，无需设置）
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  host: forum.example.com
+  tls:
+    enabled: false
+    secretName: luna-forum-tls
+
+# 应用配置 —— 原样序列化为 CONFIG 环境变量注入容器
+# （与应用 config.json 结构一致；插件列表按需增删）
+config:
+  mongodb:
+    uri: ""            # 必填，例如 mongodb://user:pass@mongodb:27017
+    dbName: luna-forum
+  jwt_secret: ""       # 必填，请使用强随机值：openssl rand -hex 32
+  plugins:
+    - name: post
+      main: plugins/post
+      deps: []
+    - name: post-pinned
+      main: ./plugins/post-pinned
+      deps:
+        - post
+    - name: tag
+      main: ./plugins/tag
+      deps:
+        - post
+    - name: home
+      main: ./plugins/home
+      deps: []
+    - name: frontend
+      main: ./plugins/frontend
+      deps: []
+
+# 若不想由 Chart 创建 Secret，可指向已有 Secret（其中需包含 CONFIG 键）
+configExistingSecret: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
