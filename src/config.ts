@@ -28,7 +28,11 @@ export async function loadConfig(defaultConfigPath: string = './config.json'): P
     const configFromEnv = process.env.CONFIG
 
     if (configFromEnv !== undefined) {
-      appConfig = JSON.parse(configFromEnv) as AppConfig
+      try {
+          appConfig = JSON.parse(configFromEnv) as AppConfig
+      } catch (e) {
+          throw new Error(`CONFIG 环境变量包含无效的 JSON: ${e instanceof Error ? e.message : String(e)}`)
+      }
     } else {
       const fullPath = resolve(process.env.CONFIG_PATH ?? path.join(import.meta.dirname, '..', defaultConfigPath))
 
@@ -37,7 +41,11 @@ export async function loadConfig(defaultConfigPath: string = './config.json'): P
       }
 
       const fileContent = readFileSync(fullPath, 'utf-8')
-      appConfig = JSON.parse(fileContent) as AppConfig
+      try {
+          appConfig = JSON.parse(fileContent) as AppConfig
+      } catch (e) {
+          throw new Error(`配置文件解析失败 (${fullPath}): ${e instanceof Error ? e.message : String(e)}`)
+      }
 
       if (!appConfig.mongodb?.uri) {
         throw new Error('MongoDB URI is required in config.json')
