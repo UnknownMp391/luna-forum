@@ -57,8 +57,13 @@ export async function getCurrentUser(request: FastifyRequest): Promise<Record<st
     for (const [key, value] of Object.entries(user)) {
         if (value instanceof Date) {
             safeUser[key] = value.toISOString();
-        } else if (value && typeof value === 'object' && 'toString' in value) {
+        } else if (value instanceof Buffer) {
+            safeUser[key] = value.toString('hex');
+        } else if (value && typeof value === 'object' && '_bsontype' in value) {
+            // MongoDB BSON 类型（ObjectId 等），转为字符串表示
             safeUser[key] = String(value);
+        } else if (Array.isArray(value)) {
+            safeUser[key] = value.map(v => v instanceof Date ? v.toISOString() : v);
         } else {
             safeUser[key] = value;
         }
