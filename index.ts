@@ -10,6 +10,9 @@ async function main() {
     pluginManager.initKernelAPI()
     pluginManager.setServer(kernel.getServer())
 
+    // 更新延迟导出的引用，确保 Vercel 等外部调用能获取到初始化后的 server
+    _server = kernel.getServer()
+
     const plugins = getPlugins()
 
     for (const pluginConfig of plugins) {
@@ -28,7 +31,10 @@ async function main() {
     }
 }
 
-main().catch(console.error);
+let _server: ReturnType<typeof kernel.getServer> | undefined = undefined
+
+// 延迟导出：在 main() 启动后更新引用，避免模块加载时返回 undefined
+main().catch(console.error)
 
 process.on('SIGINT', async () => {
     console.log('收到关闭信号，正在优雅关闭...')
@@ -42,4 +48,7 @@ process.on('SIGTERM', async () => {
     process.exit(0)
 })
 
-export default kernel.getServer()
+// 使用函数式导出确保始终返回最新值
+export default function getServer() {
+    return _server ?? kernel.getServer()
+}
