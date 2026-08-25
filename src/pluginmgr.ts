@@ -99,5 +99,10 @@ class PluginManager {
     getPlugin(name: string): Plugin | undefined {
         return this.plugins.get(name)
     }
+
+    /** 返回所有已注册插件的名称列表 */
+    getPluginNames(): string[] {
+        return Array.from(this.plugins.keys())
+    }
 }
 export const pluginManager = new PluginManager()

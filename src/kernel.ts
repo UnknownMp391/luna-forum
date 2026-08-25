@@ -66,7 +66,7 @@ export class Kernel {
         this.server.register(fastifyFlash);
         
         this.server.get('/api/v1/health', async () => {
-            return { status: 'ok', plugins: Array.from(pluginManager['plugins'].keys()) }
+            return { status: 'ok', plugins: pluginManager.getPluginNames() }
         })
 
         setupAuthRoutes(this.server)
