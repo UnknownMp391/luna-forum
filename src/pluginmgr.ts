@@ -92,7 +92,7 @@ class PluginManager {
 
     async loadPlugin(manifest: PluginManifest) {
         // 通过文件存在性检查寻找实际的入口文件（index.js / index.ts）
-        const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname, '../..', manifest.main, e));
+        const tryPaths = this.pluginEntries.map(e => nodePath.join(import.meta.dirname, '../', manifest.main, e));
 
         let path = '';
         for (const element of tryPaths) {
