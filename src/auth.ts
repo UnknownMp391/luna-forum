@@ -1,5 +1,5 @@
 import { privManager } from './privmgr.js'
-import { getDB } from './db.js'
+import { nextUid, getDB } from './db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { RegisterBody, LoginBody } from './types.js'
@@ -136,7 +136,7 @@ export function setupAuthRoutes(server: FastifyInstance): void {
         }
         const userCount = await db.collection('users').countDocuments({ uid: { $gt: 0 } })
         const maxUser = await db.collection('users').find().sort({ uid: -1 }).limit(1).toArray()
-        const newUid = maxUser.length > 0 ? maxUser[0].uid + 1 : 1
+        const newUid = await nextUid();
         const privValue = userCount === 0 ? '-1' : privManager.getDefaultPriv()
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
         await db.collection('users').insertOne({

@@ -11,12 +11,14 @@ export interface CreateTagBody {
     name: string
     parentId?: string
     sortOrder?: number
+    color?: string
 }
 
 export interface UpdateTagBody {
     name?: string
     sortOrder?: number
     requireTag?: boolean
+    color?: string
 }
 
 export interface SortTagBody {
