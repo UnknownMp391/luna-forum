@@ -1,4 +1,4 @@
-import { connect, disconnect } from './db.js'
+import { connect, disconnect, initUidCounter } from './db.js'
 import { pluginManager } from './pluginmgr.js'
 import { hookManager } from './hookmgr.js'
 import { loadConfig, loadDBConfig, getSessionSecret } from './config.js'
@@ -32,6 +32,8 @@ export class Kernel {
         await loadDBConfig()
 
         const isDev = process.env.NODE_ENV !== 'production'
+
+        await initUidCounter();
 
         this.server = Fastify({
             logger: isDev
