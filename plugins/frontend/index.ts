@@ -6,7 +6,7 @@ import { renderTemplate, addTemplatePath } from './render.js';
 const frontendPlugin: Plugin = {
     name: 'frontend',
     version: '0.1.0',
-    deps: [],
+    deps: ['post'],
     async init(ctx) {
         ctx.registerCommand('template:addPath', async (...args: unknown[]) => {
             const path = args[0] as string;

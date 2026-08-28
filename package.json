@@ -28,6 +28,8 @@
         "@microsoft/fast-foundation": "^2.50.0",
         "@microsoft/focusgroup-polyfill": "^1.6.0",
         "@sinclair/typebox": "^0.34.52",
+        "@twemoji/api": "^17.0.3",
+        "@twemoji/svg": "^15.0.0",
         "@types/winston": "^2.4.4",
         "bcrypt": "^6.0.0",
         "esbuild": "^0.28.2",
@@ -35,8 +37,12 @@
         "i18next": "^26.4.0",
         "iconify-icon": "^3.0.2",
         "jsonwebtoken": "^9.0.3",
+        "katex": "^0.18.4",
+        "marked": "^18.0.11",
+        "marked-katex-extension": "^5.1.12",
         "mongodb": "^7.4.0",
         "nunjucks": "^3.2.4",
+        "twemoji": "^14.0.2",
         "yaml": "^2.9.0"
     },
     "devDependencies": {

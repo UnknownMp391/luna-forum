@@ -13,7 +13,10 @@ await esbuild.build({
     minify: false,
     sourcemap: false,
     loader: {
-        '.css': 'css'
+        '.css': 'css',
+        '.woff': 'file',
+        '.woff2': 'file',
+        '.ttf': 'file'
     },
     ignoreAnnotations: true
 });
