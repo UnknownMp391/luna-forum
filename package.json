@@ -13,7 +13,7 @@
         "build:frontend": "node plugins/frontend/build.mjs",
         "build": "node plugins/frontend/build.mjs && tsc && tscp"
     },
-    "author": "",
+    "author": "Luna Dev Team",
     "license": "AGPL-3.0-or-later",
     "dependencies": {
         "@fastify/cookie": "^11.1.2",
@@ -30,6 +30,7 @@
         "@sinclair/typebox": "^0.34.52",
         "@types/winston": "^2.4.4",
         "bcrypt": "^6.0.0",
+        "esbuild": "^0.28.2",
         "fastify": "^5.9.0",
         "i18next": "^26.4.0",
         "iconify-icon": "^3.0.2",
