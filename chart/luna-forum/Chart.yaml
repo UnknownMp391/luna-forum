@@ -1,0 +1,13 @@
+apiVersion: v2
+name: luna-forum
+description: 轻量、高性能的论坛系统，基于 TypeScript + Fastify + MongoDB 的微内核插件架构
+type: application
+version: 0.1.0
+appVersion: "dev.1"
+home: https://github.com/unknownmp/Luna-Forum
+keywords:
+  - forum
+  - fastify
+  - mongodb
+maintainers:
+  - name: unknownmp

@@ -1,0 +1,17 @@
+# Luna Forum 集群部署配置（非敏感，随仓库提交）
+# 敏感项由 CI 注入：config.jwt_secret ← Secret LUNA_JWT_SECRET
+# 镜像 tag 由 CI 注入：image.tag ← dev.<run_number>
+
+replicaCount: 1
+
+config:
+  mongodb:
+    uri: mongodb://my-mongo-mongodb.mongodb.svc.cluster.local:27017
+    dbName: luna-forum
+
+ingress:
+  enabled: true
+  className: traefik
+  host: luna-forum.unknownmp.de5.net
+  tls:
+    enabled: false

@@ -1,44 +1,99 @@
-name: 自动 CI/CD
+name: 构建与部署
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
-  pages: write
+
+# 全局同一时间只保留一个执行中的运行：新触发时自动取消旧的
+concurrency:
+  group: luna-forum-deploy
+  cancel-in-progress: true
+
+env:
+  REGISTRY: quay.io
+  IMAGE_NAME: unknownmp/luna-forum
 
 jobs:
-  check:
-    if: github.event_name == 'pull_request'
+  build-push-deploy:
+    # 只在自己的仓库执行，fork / upstream（imsunxinhao）中直接跳过
+    if: github.repository == 'UnknownMp391/luna-forum'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+
+      - name: 登录 quay.io（Robot 账号）
+        run: >
+          podman login quay.io
+          --username "${{ secrets.QUAY_ROBOT_USER }}"
+          --password "${{ secrets.QUAY_ROBOT_TOKEN }}"
+
+      - name: 构建镜像
+        run: |
+          IMAGE=${REGISTRY}/${IMAGE_NAME}
+          podman build \
+            --tag ${IMAGE}:dev.${{ github.run_number }} \
+            --tag ${IMAGE}:sha-${GITHUB_SHA::7} \
+            .
+
+      - name: 推送镜像
+        run: |
+          IMAGE=${REGISTRY}/${IMAGE_NAME}
+          podman push ${IMAGE}:dev.${{ github.run_number }}
+          podman push ${IMAGE}:sha-${GITHUB_SHA::7}
+
+      - name: 安装 Helm
+        uses: azure/setup-helm@v4
         with:
-          node-version: '22'
-          cache: 'pnpm'
-      
-      - name: Install dependencies
-        run: pnpm i 
-      
-      - name: Run linter
-        run: pnpm run lint
-      
-      - name: Build site
-        run: pnpm run build
-      
-      - name: Upload build artifact (for preview)
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr-preview-${{ github.event.number }}
-          path: ./dist
-          retention-days: 7
+          version: v3.16.3
+
+      - name: 配置 kubectl（ServiceAccount Token）
+        env:
+          KUBE_SERVER: ${{ secrets.KUBE_SERVER }}
+          KUBE_CA_B64: ${{ secrets.KUBE_CA_B64 }}
+          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+        run: |
+          mkdir -p ~/.kube
+          cat > ~/.kube/config <<EOF
+          apiVersion: v1
+          kind: Config
+          clusters:
+            - name: cluster
+              cluster:
+                server: ${KUBE_SERVER}
+                certificate-authority-data: ${KUBE_CA_B64}
+          users:
+            - name: deployer
+              user:
+                token: ${KUBE_TOKEN}
+          contexts:
+            - name: deploy
+              context:
+                cluster: cluster
+                user: deployer
+                namespace: luna-forum
+          current-context: deploy
+          EOF
+          chmod 600 ~/.kube/config
+          kubectl auth can-i create deployments -n luna-forum
+
+      - name: Helm 部署
+        env:
+          LUNA_JWT_SECRET: ${{ secrets.LUNA_JWT_SECRET }}
+        run: |
+          helm upgrade --install luna ./chart/luna-forum \
+            --namespace luna-forum \
+            --atomic --timeout 5m \
+            --values .github/values.deploy.yaml \
+            --set image.tag=dev.${{ github.run_number }} \
+            --set-string config.jwt_secret="${LUNA_JWT_SECRET}"
+
+      - name: 验证发布
+        run: |
+          kubectl -n luna-forum rollout status deploy/luna-luna-forum --timeout=180s
+          kubectl -n luna-forum get ingress,svc

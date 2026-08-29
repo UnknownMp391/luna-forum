@@ -1,0 +1,48 @@
+# GitHub Actions 部署用的集群侧资源（一次性 kubectl apply -f 本文件）
+# 最小权限：仅限 luna-forum 命名空间
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: github-deployer
+  namespace: luna-forum
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: github-deployer
+  namespace: luna-forum
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "services", "configmaps", "pods", "pods/log"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    # replicasets 为 helm 管理 deployment 所必需
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: github-deployer
+  namespace: luna-forum
+subjects:
+  - kind: ServiceAccount
+    name: github-deployer
+    namespace: luna-forum
+roleRef:
+  kind: Role
+  name: github-deployer
+  apiGroup: rbac.authorization.k8s.io
+---
+# 长期令牌（K8s 1.24+ 不再自动生成）
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-deployer-token
+  namespace: luna-forum
+  annotations:
+    kubernetes.io/service-account.name: github-deployer
+type: kubernetes.io/service-account-token
